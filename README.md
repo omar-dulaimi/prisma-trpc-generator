@@ -62,7 +62,7 @@ model Post {
 }
 ```
 
-will generate the following files
+will generate
 
 ![tRPC Routers](https://raw.githubusercontent.com/omar-dulaimi/prisma-trpc-generator/master/trpcRouters.png)
 

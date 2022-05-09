@@ -1,0 +1,52 @@
+{
+  "name": "prisma-trpc-generator",
+  "version": "0.0.0-rc.1",
+  "description": "Prisma 2+ generator to emit fully implemented tRPC routers",
+  "repository": "https://github.com/omar-dulaimi/prisma-trpc-generator",
+  "bin": {
+    "prisma-trpc-generator": "lib/generator.js"
+  },
+  "scripts": {
+    "start": "tsc && npx prisma generate",
+    "package:publish": "./package.sh && cd package && npm publish"
+  },
+  "author": {
+    "name": "Omar Dulaimi",
+    "url": "https://github.com/omar-dulaimi"
+  },
+  "keywords": [
+    "prisma",
+    "prisma-client",
+    "prisma-schema",
+    "prisma-generator",
+    "trpc",
+    "zod",
+    "routers",
+    "prisma-trpc-generator"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@prisma/client": "~3.13.0",
+    "prisma": "~3.13.0",
+    "tslib": "^2.4.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^3.13.0",
+    "@prisma/generator-helper": "^3.13.0",
+    "@prisma/sdk": "^3.13.0",
+    "prisma-zod-generator": "0.0.0-rc.1",
+    "ts-morph": "^14.0.0",
+    "tslib": "^2.4.0"
+  },
+  "devDependencies": {
+    "@trpc/server": "^9.23.2",
+    "@types/node": "^17.0.31",
+    "prisma": "^3.13.0",
+    "typescript": "^4.6.4"
+  },
+  "bugs": {
+    "url": "https://github.com/omar-dulaimi/prisma-trpc-generator/issues"
+  },
+  "homepage": "https://github.com/omar-dulaimi/prisma-trpc-generator#readme",
+  "private": true
+}

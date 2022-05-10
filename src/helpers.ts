@@ -45,7 +45,7 @@ export function generateProcedure(
   .mutation("${name}", {
     input: ${typeName},
     async resolve({ ctx, input }) {
-      const ${name} = await ctx.${modelName}.${opType}(input);
+      const ${name} = await ctx.prisma.${modelName.toLowerCase()}.${opType}(input);
       return ${name};
     },
   })`);

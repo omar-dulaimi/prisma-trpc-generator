@@ -67,6 +67,9 @@ will generate
 ![tRPC Routers](https://raw.githubusercontent.com/omar-dulaimi/prisma-trpc-generator/master/trpcRouters.png)
 
 
+4- Don't forget to supply your `createContext` function inside `./routers/helpers/createRouter.ts`. You should check the official [tRPC docs](https://trpc.io/docs/context) for reference.
+
+
 ## Additional Options
 
 | Option                |  Description                                              | Type      |  Default      |

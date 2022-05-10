@@ -83,6 +83,7 @@ export const getInputTypeByOpName = (opName: String, modelName: String) => {
       inputType = `${modelName}FindManySchema`;
       break;
     case 'create':
+    case 'createMany':
       inputType = `${modelName}CreateSchema`;
       break;
     case 'delete':

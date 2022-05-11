@@ -39,7 +39,18 @@ generator trpc {
 }
 ```
 
-3- Running `npx prisma generate` for the following schema.prisma
+3- Enable strict mode in `tsconfig` as it is required by Zod, and considered a Typescript best practice
+
+```ts
+{
+  "compilerOptions": {
+    "strict": true
+  }
+}
+
+```
+
+4- Running `npx prisma generate` for the following schema.prisma
 
 ```prisma
 model User {
@@ -66,16 +77,13 @@ will generate
 
 ![tRPC Routers](https://raw.githubusercontent.com/omar-dulaimi/prisma-trpc-generator/master/trpcRouters.png)
 
-
-4- Don't forget to supply your `createContext` function inside `./routers/helpers/createRouter.ts`. You should check the official [tRPC docs](https://trpc.io/docs/context) for reference.
-
+5- Don't forget to supply your `createContext` function inside `./routers/helpers/createRouter.ts`. You should check the official [tRPC docs](https://trpc.io/docs/context) for reference.
 
 ## Additional Options
 
-| Option                |  Description                                              | Type      |  Default      |
-| --------------------- | --------------------------------------------------------- | --------- | ------------- |
-| `output`              | Output directory for the generated routers and zod schemas| `string`  | `./generated` |
-
+| Option   |  Description                                               | Type     |  Default      |
+| -------- | ---------------------------------------------------------- | -------- | ------------- |
+| `output` | Output directory for the generated routers and zod schemas | `string` | `./generated` |
 
 Use additional options in the `schema.prisma`
 
@@ -84,4 +92,4 @@ generator trpc {
   provider   = "prisma-trpc-generator"
   output     = "./trpc"
 }
-````
+```

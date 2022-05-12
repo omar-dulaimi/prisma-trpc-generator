@@ -64,7 +64,7 @@ export function generateProcedure(
       break;
   }
   sourceFile.addStatements(/* ts */ `
-  .mutation("${name}", {
+  .${getProcedureTypeByOpName(opType)}("${name}", {
     input: ${typeName},
     async resolve({ ctx, input }) {
       const ${name} = await ctx.prisma.${modelName.toLowerCase()}.${opType}(${input});
@@ -133,4 +133,29 @@ export const getInputTypeByOpName = (opName: String, modelName: String) => {
       console.log({ opName, modelName });
   }
   return inputType;
+};
+
+export const getProcedureTypeByOpName = (opName: String) => {
+  let procType;
+  switch (opName) {
+    case 'findUnique':
+    case 'findFirst':
+    case 'findMany':
+    case 'aggregate':
+    case 'groupBy':
+      procType = 'query';
+      break;
+    case 'create':
+    case 'createMany':
+    case 'delete':
+    case 'update':
+    case 'deleteMany':
+    case 'updateMany':
+    case 'upsert':
+      procType = 'mutation';
+      break;
+    default:
+      console.log({ opName });
+  }
+  return procType;
 };

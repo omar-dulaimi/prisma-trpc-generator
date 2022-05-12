@@ -35,7 +35,8 @@ Using yarn:
 
 ```prisma
 generator trpc {
-  provider = "prisma-trpc-generator"
+  provider       = "prisma-trpc-generator"
+  withMiddleware = false
 }
 ```
 
@@ -81,15 +82,17 @@ will generate
 
 ## Additional Options
 
-| Option   |  Description                                               | Type     |  Default      |
-| -------- | ---------------------------------------------------------- | -------- | ------------- |
-| `output` | Output directory for the generated routers and zod schemas | `string` | `./generated` |
+| Option           |  Description                                                 | Type     |  Default      |
+| ---------------- | ------------------------------------------------------------ | -------- | ------------- |
+| `output`         | Output directory for the generated routers and zod schemas   | `string` | `./generated` |
+| `withMiddleware` | Attaches a global middleware that runs before all procedures | `string` | `true`        |
 
 Use additional options in the `schema.prisma`
 
 ```prisma
 generator trpc {
-  provider   = "prisma-trpc-generator"
-  output     = "./trpc"
+  provider       = "prisma-trpc-generator"
+  output         = "./trpc"
+  withMiddleware = false
 }
 ```

@@ -5,16 +5,15 @@
 
 <p align="center">
   <a href="https://github.com/omar-dulaimi/prisma-trpc-generator">
-    <img src="https://raw.githubusercontent.com/omar-dulaimi/prisma-trpc-generator/master/logo.png" alt="Logo" width="120" height="120">
+    <img src="https://raw.githubusercontent.com/omar-dulaimi/prisma-trpc-generator/master/logo.png" alt="Logo" width="200" height="200">
   </a>
   <h3 align="center">Prisma tRPC Generator</h3>
   <p align="center">
-    A Prisma generator that automates creating you tRPC routers from your Prisma schema.
+    A Prisma generator that automates creating your tRPC routers from your Prisma schema.
     <br />
     <a href="https://github.com/omar-dulaimi/prisma-trpc-generator#additional-options"><strong>Explore the options »</strong></a>
     <br />
     <br />
-    ·
     <a href="https://github.com/omar-dulaimi/prisma-trpc-generator/issues">Report Bug</a>
     ·
     <a href="https://github.com/omar-dulaimi/prisma-trpc-generator/issues">Request Feature</a>

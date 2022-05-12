@@ -1,19 +1,38 @@
-# Prisma tRPC Generator
-
 [![npm version](https://badge.fury.io/js/prisma-trpc-generator.svg)](https://badge.fury.io/js/prisma-trpc-generator)
 [![npm](https://img.shields.io/npm/dt/prisma-trpc-generator.svg)](https://www.npmjs.com/package/prisma-trpc-generator)
 [![HitCount](https://hits.dwyl.com/omar-dulaimi/prisma-trpc-generator.svg?style=flat)](http://hits.dwyl.com/omar-dulaimi/prisma-trpc-generator)
 [![npm](https://img.shields.io/npm/l/prisma-trpc-generator.svg)](LICENSE)
 
-Automatically generate fully implemented tRPC routers from your [Prisma](https://github.com/prisma/prisma) Schema. This includes routers, app router and of course all input schemas using zod. Updates every time `npx prisma generate` runs.
+<p align="center">
+  <a href="https://github.com/omar-dulaimi/prisma-trpc-generator">
+    <img src="https://raw.githubusercontent.com/omar-dulaimi/prisma-trpc-generator/master/logo.png" alt="Logo" width="120" height="120">
+  </a>
+  <h3 align="center">Prisma tRPC Generator</h3>
+  <p align="center">
+    A Prisma generator that automates creating you tRPC routers from your Prisma schema.
+    <br />
+    <a href="https://github.com/omar-dulaimi/prisma-trpc-generator#additional-options"><strong>Explore the options »</strong></a>
+    <br />
+    <br />
+    ·
+    <a href="https://github.com/omar-dulaimi/prisma-trpc-generator/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/omar-dulaimi/prisma-trpc-generator/issues">Request Feature</a>
+  </p>
+</p>
 
 ## Table of Contents
 
-- [Installation](#installing)
+- [About The Project](#about-the-project)
+- [Installation](#installation)
 - [Usage](#usage)
 - [Additional Options](#additional-options)
 
-## Installation
+# About The Project
+
+Automatically generate fully implemented tRPC routers from your [Prisma](https://github.com/prisma/prisma) Schema. This includes routers, app router and of course all input schemas using zod. Updates every time `npx prisma generate` runs.
+
+# Installation
 
 Using npm:
 
@@ -80,7 +99,7 @@ will generate
 
 5- Don't forget to supply your `createContext` function inside `./routers/helpers/createRouter.ts`. You should check the official [tRPC docs](https://trpc.io/docs/context) for reference.
 
-## Additional Options
+# Additional Options
 
 | Option           |  Description                                                 | Type     |  Default      |
 | ---------------- | ------------------------------------------------------------ | -------- | ------------- |

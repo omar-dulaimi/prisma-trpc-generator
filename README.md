@@ -14,9 +14,9 @@
     <a href="https://github.com/omar-dulaimi/prisma-trpc-generator#additional-options"><strong>Explore the options »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/omar-dulaimi/prisma-trpc-generator/issues">Report Bug</a>
+    <a href="https://github.com/omar-dulaimi/prisma-trpc-generator/issues/new?template=bug_report.yml">Report Bug</a>
     ·
-    <a href="https://github.com/omar-dulaimi/prisma-trpc-generator/issues">Request Feature</a>
+    <a href="https://github.com/omar-dulaimi/prisma-trpc-generator/issues/new?template=feature_request.md">Request Feature</a>
   </p>
 </p>
 

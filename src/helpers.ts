@@ -41,11 +41,33 @@ export function generateProcedure(
   modelName: String,
   opType: String,
 ) {
+  let input = 'input';
+  switch (name) {
+    case 'findUniquePost':
+    case 'findFirstPost':
+    case 'findManyPost':
+    case 'deleteOnePost':
+    case 'deleteManyPost':
+    case 'updateManyPost':
+    case 'aggregatePost':
+    case 'groupByPost':
+      break;
+    case 'createOnePost':
+      input = '{ data: input.data }';
+      break;
+    case 'updateOnePost':
+      input = '{ where: input.where, data: input.data }';
+      break;
+    case 'upsertOnePost':
+      input =
+        '{ where: input.where, create: input.create, update: input.update }';
+      break;
+  }
   sourceFile.addStatements(/* ts */ `
   .mutation("${name}", {
     input: ${typeName},
     async resolve({ ctx, input }) {
-      const ${name} = await ctx.prisma.${modelName.toLowerCase()}.${opType}(input);
+      const ${name} = await ctx.prisma.${modelName.toLowerCase()}.${opType}(${input});
       return ${name};
     },
   })`);

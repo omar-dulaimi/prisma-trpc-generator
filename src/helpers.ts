@@ -1,9 +1,14 @@
 import { SourceFile } from 'ts-morph';
 
-export const generateCreateRouterImport = (sourceFile: SourceFile) => {
+export const generateCreateRouterImport = (
+  sourceFile: SourceFile,
+  isProtectedMiddleware: boolean,
+) => {
   sourceFile.addImportDeclaration({
     moduleSpecifier: './helpers/createRouter',
-    namedImports: ['createRouter'],
+    namedImports: [
+      isProtectedMiddleware ? 'createProtectedRouter' : 'createRouter',
+    ],
   });
 };
 
@@ -25,13 +30,36 @@ export const generateRouterImport = (
   });
 };
 
-export function generateBaseRouter(sourceFile: SourceFile) {
+export function generateBaseRouter(
+  sourceFile: SourceFile,
+  isProtectedMiddleware: boolean,
+) {
   sourceFile.addStatements(/* ts */ `
   export type Context = trpc.inferAsyncReturnType<typeof createContext>;
     
   export function createRouter() {
     return trpc.router<Context>();
   }`);
+
+  if (isProtectedMiddleware) {
+    sourceFile.addStatements(/* ts */ `
+    export function createProtectedRouter() {
+      return trpc
+        .router<Context>()
+        .middleware(({ ctx, next }) => {
+          console.log("inside middleware!")
+          // if (!ctx.user) {
+          //   throw new trpc.TRPCError({ code: "UNAUTHORIZED" });
+          // }
+          return next({
+            ctx: {
+              ...ctx,
+              // user: ctx.user,
+            },
+          });
+        });
+    }`);
+  }
 }
 
 export function generateProcedure(

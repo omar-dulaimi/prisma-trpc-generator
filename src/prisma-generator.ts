@@ -15,9 +15,14 @@ import {
   generateRouterImport,
 } from './helpers';
 import { project } from './project';
+import { configSchema } from './config';
 
 export async function generate(options: GeneratorOptions) {
   const outputDir = parseEnvValue(options.generator.output as EnvValue);
+  const results = configSchema.safeParse(options.generator.config);
+  if (!results.success) throw new Error('Invalid options passed');
+  const config = results.data;
+
   await fs.mkdir(outputDir, { recursive: true });
   await removeDir(outputDir, true);
   await PrismaZodGenerator(options);
@@ -32,13 +37,18 @@ export async function generate(options: GeneratorOptions) {
     .dmmf as PrismaDMMF.Document;
 
   const createRouter = project.createSourceFile(
-    path.resolve(outputDir, 'routers', 'helpers', 'createRouter.ts'),
+    path.resolve(
+      outputDir,
+      'routers',
+      'helpers',
+      'createRouter.ts',
+    ),
     undefined,
     { overwrite: true },
   );
 
   generatetRPCImport(createRouter);
-  generateBaseRouter(createRouter);
+  generateBaseRouter(createRouter, config.withMiddleware);
 
   createRouter.formatText({
     indentSize: 2,
@@ -50,9 +60,11 @@ export async function generate(options: GeneratorOptions) {
     { overwrite: true },
   );
 
-  generateCreateRouterImport(appRouter);
+  generateCreateRouterImport(appRouter, config.withMiddleware);
   appRouter.addStatements(/* ts */ `
-  export const appRouter = createRouter()`);
+  export const appRouter = ${
+    config.withMiddleware ? 'createProtectedRouter' : 'createRouter'
+  }()`);
 
   prismaClientDmmf.mappings.modelOperations.forEach((modelOperation) => {
     const { model, plural, ...operations } = modelOperation;
@@ -63,7 +75,7 @@ export async function generate(options: GeneratorOptions) {
       { overwrite: true },
     );
 
-    generateCreateRouterImport(modelRouter);
+    generateCreateRouterImport(modelRouter, false);
     generateRouterSchemaImports(modelRouter, model);
 
     modelRouter.addStatements(/* ts */ `

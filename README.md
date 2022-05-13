@@ -100,10 +100,10 @@ will generate
 
 # Additional Options
 
-| Option           |  Description                                                 | Type     |  Default      |
-| ---------------- | ------------------------------------------------------------ | -------- | ------------- |
-| `output`         | Output directory for the generated routers and zod schemas   | `string` | `./generated` |
-| `withMiddleware` | Attaches a global middleware that runs before all procedures | `string` | `true`        |
+| Option           |  Description                                                 | Type      |  Default      |
+| ---------------- | ------------------------------------------------------------ | --------- | ------------- |
+| `output`         | Output directory for the generated routers and zod schemas   | `string`  | `./generated` |
+| `withMiddleware` | Attaches a global middleware that runs before all procedures | `boolean` | `true`        |
 
 Use additional options in the `schema.prisma`
 

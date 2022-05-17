@@ -70,7 +70,8 @@ export function generateProcedure(
   opType: String,
 ) {
   let input = 'input';
-  switch (name) {
+  const nameWithoutModel = name.replace(modelName as string, '');
+  switch (nameWithoutModel) {
     case 'findUnique':
     case 'findFirst':
     case 'findMany':

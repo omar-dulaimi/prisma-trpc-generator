@@ -73,13 +73,21 @@ export function generateProcedure(
   const nameWithoutModel = name.replace(modelName as string, '');
   switch (nameWithoutModel) {
     case 'findUnique':
+      input = '{ where: input.where }';
+      break;
     case 'findFirst':
     case 'findMany':
+      break;
     case 'deleteOne':
+      input = '{ where: input.where }';
+      break;
     case 'deleteMany':
     case 'updateMany':
     case 'aggregate':
+      break;
     case 'groupBy':
+      input =
+        '{ where: input.where, orderBy: input.orderBy, by: input.by, having: input.having, take: input.take, skip: input.skip }';
       break;
     case 'createOne':
       input = '{ data: input.data }';

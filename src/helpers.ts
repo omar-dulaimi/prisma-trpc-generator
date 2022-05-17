@@ -71,22 +71,22 @@ export function generateProcedure(
 ) {
   let input = 'input';
   switch (name) {
-    case 'findUniquePost':
-    case 'findFirstPost':
-    case 'findManyPost':
-    case 'deleteOnePost':
-    case 'deleteManyPost':
-    case 'updateManyPost':
-    case 'aggregatePost':
-    case 'groupByPost':
+    case 'findUnique':
+    case 'findFirst':
+    case 'findMany':
+    case 'deleteOne':
+    case 'deleteMany':
+    case 'updateMany':
+    case 'aggregate':
+    case 'groupBy':
       break;
-    case 'createOnePost':
+    case 'createOne':
       input = '{ data: input.data }';
       break;
-    case 'updateOnePost':
+    case 'updateOne':
       input = '{ where: input.where, data: input.data }';
       break;
-    case 'upsertOnePost':
+    case 'upsertOne':
       input =
         '{ where: input.where, create: input.create, update: input.update }';
       break;

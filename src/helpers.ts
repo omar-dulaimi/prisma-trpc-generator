@@ -35,7 +35,8 @@ export function generateBaseRouter(
   isProtectedMiddleware: boolean,
 ) {
   sourceFile.addStatements(/* ts */ `
-  export type Context = trpc.inferAsyncReturnType<typeof createContext>;
+  // make sure to change this according to your Context path
+  import { Context } from '../../../../src/context';
     
   export function createRouter() {
     return trpc.router<Context>();

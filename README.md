@@ -3,6 +3,8 @@
 [![HitCount](https://hits.dwyl.com/omar-dulaimi/prisma-trpc-generator.svg?style=flat)](http://hits.dwyl.com/omar-dulaimi/prisma-trpc-generator)
 [![npm](https://img.shields.io/npm/l/prisma-trpc-generator.svg)](LICENSE)
 
+
+
 <p align="center">
   <a href="https://github.com/omar-dulaimi/prisma-trpc-generator">
     <img src="https://raw.githubusercontent.com/omar-dulaimi/prisma-trpc-generator/master/logo.png" alt="Logo" width="200" height="200">
@@ -19,6 +21,14 @@
     <a href="https://github.com/omar-dulaimi/prisma-trpc-generator/issues/new?template=feature_request.md">Request Feature</a>
   </p>
 </p>
+
+<p align="center">
+  <a href="https://www.buymeacoffee.com/omardulaimi">
+    <img src="https://cdn.buymeacoffee.com/buttons/default-black.png" alt="Buy Me A Coffee" height="41" width="174">
+  </a>
+</p>
+
+
 
 ## Table of Contents
 

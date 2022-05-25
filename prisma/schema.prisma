@@ -4,7 +4,6 @@ generator client {
 
 generator trpc {
   provider       = "node ./lib/generator.js"
-  withMiddleware = false
 }
 
 datasource db {

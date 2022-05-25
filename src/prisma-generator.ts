@@ -14,6 +14,7 @@ import {
   generateBaseRouter,
   generateCreateRouterImport,
   generateRouterImport,
+  generateShieldImport,
 } from './helpers';
 import { project } from './project';
 import { configSchema } from './config';
@@ -28,9 +29,10 @@ export async function generate(options: GeneratorOptions) {
   await removeDir(outputDir, true);
   await PrismaZodGenerator(options);
 
+  let shieldOutputPath: string;
   if (config.withShield) {
     const outputPath = options.generator.output.value;
-    const newPath =
+    shieldOutputPath =
       outputPath
         .split(path.sep)
         .slice(0, outputPath.split(path.sep).length - 1)
@@ -42,7 +44,7 @@ export async function generate(options: GeneratorOptions) {
         ...options.generator,
         output: {
           ...options.generator.output,
-          value: newPath,
+          value: shieldOutputPath,
         },
       },
     });
@@ -64,7 +66,8 @@ export async function generate(options: GeneratorOptions) {
   );
 
   generatetRPCImport(createRouter);
-  generateBaseRouter(createRouter, config.withMiddleware);
+  generateShieldImport(createRouter, shieldOutputPath);
+  generateBaseRouter(createRouter, config);
 
   createRouter.formatText({
     indentSize: 2,

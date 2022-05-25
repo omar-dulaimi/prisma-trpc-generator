@@ -1,4 +1,5 @@
 import { SourceFile } from 'ts-morph';
+import { Config } from './config';
 
 export const generateCreateRouterImport = (
   sourceFile: SourceFile,
@@ -19,6 +20,16 @@ export const generatetRPCImport = (sourceFile: SourceFile) => {
   });
 };
 
+export const generateShieldImport = (
+  sourceFile: SourceFile,
+  shieldOutputPath: string
+) => {
+  sourceFile.addImportDeclaration({
+    moduleSpecifier: `${shieldOutputPath}/shield`,
+    namedImports: ["permissions"],
+  });
+};
+
 export const generateRouterImport = (
   sourceFile: SourceFile,
   modelNamePlural: String,
@@ -30,10 +41,7 @@ export const generateRouterImport = (
   });
 };
 
-export function generateBaseRouter(
-  sourceFile: SourceFile,
-  isProtectedMiddleware: boolean,
-) {
+export function generateBaseRouter(sourceFile: SourceFile, config: Config) {
   sourceFile.addStatements(/* ts */ `
   // make sure to change this according to your Context path
   import { Context } from '../../../../src/context';
@@ -42,25 +50,26 @@ export function generateBaseRouter(
     return trpc.router<Context>();
   }`);
 
-  if (isProtectedMiddleware) {
-    sourceFile.addStatements(/* ts */ `
+  const middlewares = [];
+  if (config.withMiddleware) {
+    middlewares.push(/* ts */ `
+    .middleware(({ ctx, next }) => {
+      console.log("inside middleware!")
+      return next();
+    })`);
+  }
+
+  if (config.withShield) {
+    middlewares.push(/* ts */ `
+    .middleware(permissions)`);
+  }
+
+  sourceFile.addStatements(/* ts */ `
     export function createProtectedRouter() {
       return trpc
         .router<Context>()
-        .middleware(({ ctx, next }) => {
-          console.log("inside middleware!")
-          // if (!ctx.user) {
-          //   throw new trpc.TRPCError({ code: "UNAUTHORIZED" });
-          // }
-          return next({
-            ctx: {
-              ...ctx,
-              // user: ctx.user,
-            },
-          });
-        });
+        ${middlewares.join("\r")};
     }`);
-  }
 }
 
 export function generateProcedure(

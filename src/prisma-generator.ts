@@ -4,6 +4,7 @@ import { EnvValue, GeneratorOptions } from '@prisma/generator-helper';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { generate as PrismaZodGenerator } from 'prisma-zod-generator/lib/prisma-generator';
+import { generate as PrismaTrpcShieldGenerator } from 'prisma-trpc-shield-generator/lib/prisma-generator';
 import removeDir from './utils/removeDir';
 import {
   generateProcedure,
@@ -27,6 +28,26 @@ export async function generate(options: GeneratorOptions) {
   await removeDir(outputDir, true);
   await PrismaZodGenerator(options);
 
+  if (config.withShield) {
+    const outputPath = options.generator.output.value;
+    const newPath =
+      outputPath
+        .split(path.sep)
+        .slice(0, outputPath.split(path.sep).length - 1)
+        .join(path.sep) + '/shield';
+
+    await PrismaTrpcShieldGenerator({
+      ...options,
+      generator: {
+        ...options.generator,
+        output: {
+          ...options.generator.output,
+          value: newPath,
+        },
+      },
+    });
+  }
+
   const prismaClientProvider = options.otherGenerators.find(
     (it) => parseEnvValue(it.provider) === 'prisma-client-js',
   );
@@ -37,12 +58,7 @@ export async function generate(options: GeneratorOptions) {
     .dmmf as PrismaDMMF.Document;
 
   const createRouter = project.createSourceFile(
-    path.resolve(
-      outputDir,
-      'routers',
-      'helpers',
-      'createRouter.ts',
-    ),
+    path.resolve(outputDir, 'routers', 'helpers', 'createRouter.ts'),
     undefined,
     { overwrite: true },
   );

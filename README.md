@@ -56,6 +56,7 @@ Using yarn:
 generator trpc {
   provider       = "prisma-trpc-generator"
   withMiddleware = false
+  withShield     = false
 }
 ```
 
@@ -105,6 +106,7 @@ will generate
 | ---------------- | ------------------------------------------------------------ | --------- | ------------- |
 | `output`         | Output directory for the generated routers and zod schemas   | `string`  | `./generated` |
 | `withMiddleware` | Attaches a global middleware that runs before all procedures | `boolean` | `true`        |
+| `withShield`     | Generates a tRPC Shield to use as a permissions layer        | `boolean` | `true`        |
 
 Use additional options in the `schema.prisma`
 
@@ -113,6 +115,7 @@ generator trpc {
   provider       = "prisma-trpc-generator"
   output         = "./trpc"
   withMiddleware = false
+  withShield     = false
 }
 ```
 # Community

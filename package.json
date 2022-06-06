@@ -30,7 +30,7 @@
     "@prisma/generator-helper": "^3.14.0",
     "@prisma/sdk": "^3.14.0",
     "prisma-trpc-shield-generator": "0.0.0-rc.3",
-    "prisma-zod-generator": "0.1.2",
+    "prisma-zod-generator": "0.1.4",
     "ts-morph": "^15.0.0",
     "tslib": "^2.4.0"
   },

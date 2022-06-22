@@ -66,7 +66,9 @@ export async function generate(options: GeneratorOptions) {
   );
 
   generatetRPCImport(createRouter);
-  generateShieldImport(createRouter, shieldOutputPath);
+  if (config.withShield) {
+    generateShieldImport(createRouter, shieldOutputPath);
+  }
   generateBaseRouter(createRouter, config);
 
   createRouter.formatText({

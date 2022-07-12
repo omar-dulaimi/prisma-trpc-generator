@@ -22,11 +22,11 @@ export const generatetRPCImport = (sourceFile: SourceFile) => {
 
 export const generateShieldImport = (
   sourceFile: SourceFile,
-  shieldOutputPath: string
+  shieldOutputPath: string,
 ) => {
   sourceFile.addImportDeclaration({
     moduleSpecifier: `${shieldOutputPath}/shield`,
-    namedImports: ["permissions"],
+    namedImports: ['permissions'],
   });
 };
 
@@ -68,7 +68,7 @@ export function generateBaseRouter(sourceFile: SourceFile, config: Config) {
     export function createProtectedRouter() {
       return trpc
         .router<Context>()
-        ${middlewares.join("\r")};
+        ${middlewares.join('\r')};
     }`);
 }
 
@@ -114,7 +114,10 @@ export function generateProcedure(
   .${getProcedureTypeByOpName(opType)}("${name}", {
     input: ${typeName},
     async resolve({ ctx, input }) {
-      const ${name} = await ctx.prisma.${modelName.toLowerCase()}.${opType}(${input});
+      const ${name} = await ctx.prisma.${modelName.toLowerCase()}.${opType.replace(
+    'One',
+    '',
+  )}(${input});
       return ${name};
     },
   })`);
@@ -151,14 +154,14 @@ export const getInputTypeByOpName = (opName: String, modelName: String) => {
     case 'findMany':
       inputType = `${modelName}FindManySchema`;
       break;
-    case 'create':
+    case 'createOne':
     case 'createMany':
       inputType = `${modelName}CreateSchema`;
       break;
-    case 'delete':
+    case 'deleteOne':
       inputType = `${modelName}DeleteOneSchema`;
       break;
-    case 'update':
+    case 'updateOne':
       inputType = `${modelName}UpdateOneSchema`;
       break;
     case 'deleteMany':
@@ -167,7 +170,7 @@ export const getInputTypeByOpName = (opName: String, modelName: String) => {
     case 'updateMany':
       inputType = `${modelName}UpdateManySchema`;
       break;
-    case 'upsert':
+    case 'upsertOne':
       inputType = `${modelName}UpsertSchema`;
       break;
     case 'aggregate':
@@ -192,13 +195,13 @@ export const getProcedureTypeByOpName = (opName: String) => {
     case 'groupBy':
       procType = 'query';
       break;
-    case 'create':
+    case 'createOne':
     case 'createMany':
-    case 'delete':
-    case 'update':
+    case 'deleteOne':
+    case 'updateOne':
     case 'deleteMany':
     case 'updateMany':
-    case 'upsert':
+    case 'upsertOne':
       procType = 'mutation';
       break;
     default:

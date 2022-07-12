@@ -1,8 +1,8 @@
-import { DMMF as PrismaDMMF } from '@prisma/client/runtime';
-import { parseEnvValue } from '@prisma/sdk';
+import { parseEnvValue, getDMMF } from '@prisma/internals';
 import { EnvValue, GeneratorOptions } from '@prisma/generator-helper';
 import { promises as fs } from 'fs';
 import path from 'path';
+import pluralize from 'pluralize';
 import { generate as PrismaZodGenerator } from 'prisma-zod-generator/lib/prisma-generator';
 import { generate as PrismaTrpcShieldGenerator } from 'prisma-trpc-shield-generator/lib/prisma-generator';
 import removeDir from './utils/removeDir';
@@ -53,11 +53,11 @@ export async function generate(options: GeneratorOptions) {
   const prismaClientProvider = options.otherGenerators.find(
     (it) => parseEnvValue(it.provider) === 'prisma-client-js',
   );
-  const prismaClientPath = parseEnvValue(
-    prismaClientProvider?.output as EnvValue,
-  );
-  const prismaClientDmmf = (await import(prismaClientPath))
-    .dmmf as PrismaDMMF.Document;
+
+  const prismaClientDmmf = await getDMMF({
+    datamodel: options.datamodel,
+    previewFeatures: prismaClientProvider.previewFeatures,
+  });
 
   const createRouter = project.createSourceFile(
     path.resolve(outputDir, 'routers', 'helpers', 'createRouter.ts'),
@@ -88,7 +88,8 @@ export async function generate(options: GeneratorOptions) {
   }()`);
 
   prismaClientDmmf.mappings.modelOperations.forEach((modelOperation) => {
-    const { model, plural, ...operations } = modelOperation;
+    const { model, ...operations } = modelOperation;
+    const plural = pluralize(model.toLowerCase());
     generateRouterImport(appRouter, plural, model);
     const modelRouter = project.createSourceFile(
       path.resolve(outputDir, 'routers', `${model}.router.ts`),

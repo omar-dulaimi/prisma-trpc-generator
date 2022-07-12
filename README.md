@@ -33,6 +33,7 @@
 ## Table of Contents
 
 - [About The Project](#about-the-project)
+- [Supported Prisma Versions](#supported-prisma-versions)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Additional Options](#additional-options)
@@ -41,6 +42,13 @@
 # About The Project
 
 Automatically generate fully implemented tRPC routers from your [Prisma](https://github.com/prisma/prisma) Schema. This includes routers, app router and of course all input schemas using [Zod](https://github.com/colinhacks/zod). Updates every time `npx prisma generate` runs.
+
+# Supported Prisma Versions
+
+### Prisma 4  
+- 0.2.0 and higher
+### Prisma 2/3 
+- 0.1.12 and lower
 
 # Installation
 

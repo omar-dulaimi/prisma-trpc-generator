@@ -1,5 +1,6 @@
 import { SourceFile } from 'ts-morph';
 import { Config } from './config';
+import { uncapitalizeFirstLetter } from './utils/uncapitalizeFirstLetter';
 
 export const generateCreateRouterImport = (
   sourceFile: SourceFile,
@@ -32,8 +33,8 @@ export const generateShieldImport = (
 
 export const generateRouterImport = (
   sourceFile: SourceFile,
-  modelNamePlural: String,
-  modelNameCamelCase: String,
+  modelNamePlural: string,
+  modelNameCamelCase: string,
 ) => {
   sourceFile.addImportDeclaration({
     moduleSpecifier: `./${modelNameCamelCase}.router`,
@@ -74,10 +75,10 @@ export function generateBaseRouter(sourceFile: SourceFile, config: Config) {
 
 export function generateProcedure(
   sourceFile: SourceFile,
-  name: String,
-  typeName: String,
-  modelName: String,
-  opType: String,
+  name: string,
+  typeName: string,
+  modelName: string,
+  opType: string,
 ) {
   let input = 'input';
   const nameWithoutModel = name.replace(modelName as string, '');
@@ -114,10 +115,9 @@ export function generateProcedure(
   .${getProcedureTypeByOpName(opType)}("${name}", {
     input: ${typeName},
     async resolve({ ctx, input }) {
-      const ${name} = await ctx.prisma.${modelName.toLowerCase()}.${opType.replace(
-    'One',
-    '',
-  )}(${input});
+      const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
+    modelName,
+  )}.${opType.replace('One', '')}(${input});
       return ${name};
     },
   })`);
@@ -125,7 +125,7 @@ export function generateProcedure(
 
 export function generateRouterSchemaImports(
   sourceFile: SourceFile,
-  name: String,
+  name: string,
 ) {
   sourceFile.addStatements(/* ts */ `
   import { ${name}FindUniqueSchema } from "../schemas/findUnique${name}.schema";
@@ -142,7 +142,7 @@ export function generateRouterSchemaImports(
   `);
 }
 
-export const getInputTypeByOpName = (opName: String, modelName: String) => {
+export const getInputTypeByOpName = (opName: string, modelName: string) => {
   let inputType;
   switch (opName) {
     case 'findUnique':
@@ -185,7 +185,7 @@ export const getInputTypeByOpName = (opName: String, modelName: String) => {
   return inputType;
 };
 
-export const getProcedureTypeByOpName = (opName: String) => {
+export const getProcedureTypeByOpName = (opName: string) => {
   let procType;
   switch (opName) {
     case 'findUnique':

@@ -44,8 +44,7 @@ export const generateRouterImport = (
 
 export function generateBaseRouter(sourceFile: SourceFile, config: Config) {
   sourceFile.addStatements(/* ts */ `
-  // make sure to change this according to your Context path
-  import { Context } from '../../../../src/context';
+  import { Context } from '${config.contextPath}';
     
   export function createRouter() {
     return trpc.router<Context>();

@@ -100,6 +100,7 @@ export function generateProcedure(
         '{ where: input.where, orderBy: input.orderBy, by: input.by, having: input.having, take: input.take, skip: input.skip }';
       break;
     case 'createOne':
+    case 'createMany':
       input = '{ data: input.data }';
       break;
     case 'updateOne':
@@ -125,20 +126,31 @@ export function generateProcedure(
 export function generateRouterSchemaImports(
   sourceFile: SourceFile,
   name: string,
+  hasCreateMany: boolean,
 ) {
-  sourceFile.addStatements(/* ts */ `
-  import { ${name}FindUniqueSchema } from "../schemas/findUnique${name}.schema";
-  import { ${name}FindFirstSchema } from "../schemas/findFirst${name}.schema";
-  import { ${name}FindManySchema } from "../schemas/findMany${name}.schema";
-  import { ${name}CreateSchema } from "../schemas/createOne${name}.schema";
-  import { ${name}DeleteOneSchema } from "../schemas/deleteOne${name}.schema";
-  import { ${name}UpdateOneSchema } from "../schemas/updateOne${name}.schema";
-  import { ${name}DeleteManySchema } from "../schemas/deleteMany${name}.schema";
-  import { ${name}UpdateManySchema } from "../schemas/updateMany${name}.schema";
-  import { ${name}UpsertSchema } from "../schemas/upsertOne${name}.schema";
-  import { ${name}AggregateSchema } from "../schemas/aggregate${name}.schema";
-  import { ${name}GroupBySchema } from "../schemas/groupBy${name}.schema";
-  `);
+  let statements = [
+    `import { ${name}FindUniqueSchema } from "../schemas/findUnique${name}.schema";`,
+    `import { ${name}FindFirstSchema } from "../schemas/findFirst${name}.schema";`,
+    `import { ${name}FindManySchema } from "../schemas/findMany${name}.schema";`,
+    `import { ${name}CreateOneSchema } from "../schemas/createOne${name}.schema";`,
+  ];
+
+  if (hasCreateMany) {
+    statements.push(
+      `import { ${name}CreateManySchema } from "../schemas/createMany${name}.schema";`,
+    );
+  }
+
+  statements = statements.concat([
+    `import { ${name}DeleteOneSchema } from "../schemas/deleteOne${name}.schema";`,
+    `import { ${name}UpdateOneSchema } from "../schemas/updateOne${name}.schema";`,
+    `import { ${name}DeleteManySchema } from "../schemas/deleteMany${name}.schema";`,
+    `import { ${name}UpdateManySchema } from "../schemas/updateMany${name}.schema";`,
+    `import { ${name}UpsertSchema } from "../schemas/upsertOne${name}.schema";`,
+    `import { ${name}AggregateSchema } from "../schemas/aggregate${name}.schema";`,
+    `import { ${name}GroupBySchema } from "../schemas/groupBy${name}.schema";`,
+  ]);
+  sourceFile.addStatements(/* ts */ statements.join('\n'));
 }
 
 export const getInputTypeByOpName = (opName: string, modelName: string) => {
@@ -154,8 +166,10 @@ export const getInputTypeByOpName = (opName: string, modelName: string) => {
       inputType = `${modelName}FindManySchema`;
       break;
     case 'createOne':
+      inputType = `${modelName}CreateOneSchema`;
+      break;
     case 'createMany':
-      inputType = `${modelName}CreateSchema`;
+      inputType = `${modelName}CreateManySchema`;
       break;
     case 'deleteOne':
       inputType = `${modelName}DeleteOneSchema`;

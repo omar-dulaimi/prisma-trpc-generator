@@ -90,6 +90,7 @@ export async function generate(options: GeneratorOptions) {
   prismaClientDmmf.mappings.modelOperations.forEach((modelOperation) => {
     const { model, ...operations } = modelOperation;
     const plural = pluralize(model.toLowerCase());
+    const hasCreateMany = Boolean(operations.createMany);
     generateRouterImport(appRouter, plural, model);
     const modelRouter = project.createSourceFile(
       path.resolve(outputDir, 'routers', `${model}.router.ts`),
@@ -98,7 +99,7 @@ export async function generate(options: GeneratorOptions) {
     );
 
     generateCreateRouterImport(modelRouter, false);
-    generateRouterSchemaImports(modelRouter, model);
+    generateRouterSchemaImports(modelRouter, model, hasCreateMany);
 
     modelRouter.addStatements(/* ts */ `
     export const ${plural}Router = createRouter()`);

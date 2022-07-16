@@ -31,13 +31,13 @@
     "@prisma/internals": "^4.0.0",
     "pluralize": "^8.0.0",
     "prisma-trpc-shield-generator": "0.0.0-rc.4",
-    "prisma-zod-generator": "0.3.0",
+    "prisma-zod-generator": "0.3.1",
     "ts-morph": "^15.1.0",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@trpc/server": "^9.25.3",
-    "@types/node": "^18.0.3",
+    "@trpc/server": "^9.26.0",
+    "@types/node": "^18.0.5",
     "@types/pluralize": "^0.0.29",
     "prisma": "^4.0.0",
     "trpc-shield": "^0.1.1",

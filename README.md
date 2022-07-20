@@ -117,7 +117,7 @@ will generate
 
 ![tRPC Routers](https://raw.githubusercontent.com/omar-dulaimi/prisma-trpc-generator/master/trpcRouters.png)
 
-5- Don't forget to supply your `Context` type inside `./routers/helpers/createRouter.ts`. You should check the official [tRPC docs](https://trpc.io/docs/context) for reference.
+5- Make sure you have a valid `Context` file, as specified in `contextPath` option. The official [tRPC docs](https://trpc.io/docs/context) for reference.
 
 # Additional Options
 

@@ -37,7 +37,6 @@
 - [Installation](#installation)
 - [Usage](#usage)
 - [Additional Options](#additional-options)
-- [Community](#community)
 
 # About The Project
 
@@ -139,5 +138,3 @@ generator trpc {
   contextPath    = "../context"
 }
 ```
-# Community
-[![Stargazers repo roster for @omar-dulaimi/prisma-trpc-generator](https://reporoster.com/stars/omar-dulaimi/prisma-trpc-generator)](https://github.com/omar-dulaimi/prisma-trpc-generator/stargazers)

@@ -1,23 +1,23 @@
-import { parseEnvValue, getDMMF } from '@prisma/internals';
 import { EnvValue, GeneratorOptions } from '@prisma/generator-helper';
+import { getDMMF, parseEnvValue } from '@prisma/internals';
 import { promises as fs } from 'fs';
 import path from 'path';
 import pluralize from 'pluralize';
-import { generate as PrismaZodGenerator } from 'prisma-zod-generator/lib/prisma-generator';
 import { generate as PrismaTrpcShieldGenerator } from 'prisma-trpc-shield-generator/lib/prisma-generator';
-import removeDir from './utils/removeDir';
+import { generate as PrismaZodGenerator } from 'prisma-zod-generator/lib/prisma-generator';
+import { configSchema } from './config';
 import {
-  generateProcedure,
-  generatetRPCImport,
-  generateRouterSchemaImports,
-  getInputTypeByOpName,
   generateBaseRouter,
   generateCreateRouterImport,
+  generateProcedure,
   generateRouterImport,
+  generateRouterSchemaImports,
   generateShieldImport,
+  generatetRPCImport,
+  getInputTypeByOpName
 } from './helpers';
 import { project } from './project';
-import { configSchema } from './config';
+import removeDir from './utils/removeDir';
 
 export async function generate(options: GeneratorOptions) {
   const outputDir = parseEnvValue(options.generator.output as EnvValue);
@@ -53,6 +53,8 @@ export async function generate(options: GeneratorOptions) {
   const prismaClientProvider = options.otherGenerators.find(
     (it) => parseEnvValue(it.provider) === 'prisma-client-js',
   );
+
+  const dataSource = options.datasources?.[0];
 
   const prismaClientDmmf = await getDMMF({
     datamodel: options.datamodel,
@@ -99,7 +101,12 @@ export async function generate(options: GeneratorOptions) {
     );
 
     generateCreateRouterImport(modelRouter, false);
-    generateRouterSchemaImports(modelRouter, model, hasCreateMany);
+    generateRouterSchemaImports(
+      modelRouter,
+      model,
+      hasCreateMany,
+      dataSource.provider,
+    );
 
     modelRouter.addStatements(/* ts */ `
     export const ${plural}Router = createRouter()`);

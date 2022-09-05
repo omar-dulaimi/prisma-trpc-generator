@@ -127,6 +127,7 @@ export function generateRouterSchemaImports(
   sourceFile: SourceFile,
   name: string,
   hasCreateMany: boolean,
+  provider: string
 ) {
   let statements = [
     `import { ${name}FindUniqueSchema } from "../schemas/findUnique${name}.schema";`,
@@ -150,6 +151,15 @@ export function generateRouterSchemaImports(
     `import { ${name}AggregateSchema } from "../schemas/aggregate${name}.schema";`,
     `import { ${name}GroupBySchema } from "../schemas/groupBy${name}.schema";`,
   ]);
+
+  if(provider === "mongodb") {
+    statements = statements.concat([
+      `import { ${name}FindRawObjectSchema } from "../schemas/objects/${name}FindRaw.schema";`,
+      `import { ${name}AggregateRawObjectSchema } from "../schemas/objects/${name}AggregateRaw.schema";`,
+    ]);
+  }
+
+
   sourceFile.addStatements(/* ts */ statements.join('\n'));
 }
 
@@ -164,6 +174,9 @@ export const getInputTypeByOpName = (opName: string, modelName: string) => {
       break;
     case 'findMany':
       inputType = `${modelName}FindManySchema`;
+      break;
+    case 'findRaw':
+      inputType = `${modelName}FindRawObjectSchema`;
       break;
     case 'createOne':
       inputType = `${modelName}CreateOneSchema`;
@@ -189,11 +202,14 @@ export const getInputTypeByOpName = (opName: string, modelName: string) => {
     case 'aggregate':
       inputType = `${modelName}AggregateSchema`;
       break;
+    case 'aggregateRaw':
+      inputType = `${modelName}AggregateRawObjectSchema`;
+      break;
     case 'groupBy':
       inputType = `${modelName}GroupBySchema`;
       break;
     default:
-      console.log({ opName, modelName });
+      console.log('getInputTypeByOpName: ', { opName, modelName });
   }
   return inputType;
 };
@@ -204,7 +220,9 @@ export const getProcedureTypeByOpName = (opName: string) => {
     case 'findUnique':
     case 'findFirst':
     case 'findMany':
+    case 'findRaw':
     case 'aggregate':
+    case 'aggregateRaw':
     case 'groupBy':
       procType = 'query';
       break;
@@ -218,7 +236,7 @@ export const getProcedureTypeByOpName = (opName: string) => {
       procType = 'mutation';
       break;
     default:
-      console.log({ opName });
+      console.log('getProcedureTypeByOpName: ', { opName });
   }
   return procType;
 };

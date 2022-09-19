@@ -33,10 +33,14 @@ export async function generate(options: GeneratorOptions) {
   if (config.withShield) {
     const outputPath = options.generator.output.value;
     shieldOutputPath =
-      outputPath
+      (outputPath
         .split(path.sep)
         .slice(0, outputPath.split(path.sep).length - 1)
-        .join(path.sep) + '/shield';
+        .join(path.sep) + '/shield')
+        .split(path.sep)
+        .join(path.posix.sep);
+
+    shieldOutputPath = path.relative(path.join(outputPath, 'routers', 'helpers'), shieldOutputPath)
 
     await PrismaTrpcShieldGenerator({
       ...options,
@@ -85,9 +89,8 @@ export async function generate(options: GeneratorOptions) {
 
   generateCreateRouterImport(appRouter, config.withMiddleware);
   appRouter.addStatements(/* ts */ `
-  export const appRouter = ${
-    config.withMiddleware ? 'createProtectedRouter' : 'createRouter'
-  }()`);
+  export const appRouter = ${config.withMiddleware ? 'createProtectedRouter' : 'createRouter'
+    }()`);
 
   prismaClientDmmf.mappings.modelOperations.forEach((modelOperation) => {
     const { model, ...operations } = modelOperation;

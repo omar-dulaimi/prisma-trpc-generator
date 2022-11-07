@@ -3,7 +3,9 @@ generator client {
 }
 
 generator trpc {
-  provider       = "node ./lib/generator.js"
+  provider          = "node ./lib/generator.js"
+  isGenerateSelect  = true
+  isGenerateInclude = true
 }
 
 datasource db {

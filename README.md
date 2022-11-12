@@ -120,21 +120,25 @@ will generate
 
 # Additional Options
 
-| Option           |  Description                                                 | Type      |  Default                  |
-| ---------------- | ------------------------------------------------------------ | --------- | ------------------------- |
-| `output`         | Output directory for the generated routers and zod schemas   | `string`  | `./generated`             |
-| `withMiddleware` | Attaches a global middleware that runs before all procedures | `boolean` | `true`                    |
-| `withShield`     | Generates a tRPC Shield to use as a permissions layer        | `boolean` | `true`                    |
-| `contextPath`    | Sets the context path used in your routers                   | `string`  | `../../../../src/context` |
+| Option              | Description                                                                | Type      | Default                   |
+| ------------------- | -------------------------------------------------------------------------- | --------- | ------------------------- |
+| `output`            | Output directory for the generated routers and zod schemas                 | `string`  | `./generated`             |
+| `withMiddleware`    | Attaches a global middleware that runs before all procedures               | `boolean` | `true`                    |
+| `withShield`        | Generates a tRPC Shield to use as a permissions layer                      | `boolean` | `true`                    |
+| `contextPath`       | Sets the context path used in your routers                                 | `string`  | `../../../../src/context` |
+| `isGenerateSelect`  | Enables the generation of Select related schemas and the select property   | `boolean` | `false`                   |
+| `isGenerateInclude` | Enables the generation of Include related schemas and the include property | `boolean` | `false`                   |
 
 Use additional options in the `schema.prisma`
 
 ```prisma
 generator trpc {
-  provider       = "prisma-trpc-generator"
-  output         = "./trpc"
-  withMiddleware = false
-  withShield     = false
-  contextPath    = "../context"
+  provider           = "prisma-trpc-generator"
+  output             = "./trpc"
+  withMiddleware     = false
+  withShield         = false
+  contextPath        = "../context"
+  isGenerateSelect   = true
+  isGenerateInclude  = true
 }
 ```

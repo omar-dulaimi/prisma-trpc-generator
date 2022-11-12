@@ -14,7 +14,7 @@ import {
   generateRouterSchemaImports,
   generateShieldImport,
   generatetRPCImport,
-  getInputTypeByOpName
+  getInputTypeByOpName,
 } from './helpers';
 import { project } from './project';
 import removeDir from './utils/removeDir';
@@ -28,21 +28,24 @@ export async function generate(options: GeneratorOptions) {
   await fs.mkdir(outputDir, { recursive: true });
   await removeDir(outputDir, true);
 
-  options.generator.config["isGenerateSelect"] = "true";
   await PrismaZodGenerator(options);
 
   let shieldOutputPath: string;
   if (config.withShield) {
     const outputPath = options.generator.output.value;
-    shieldOutputPath =
-      (outputPath
+    shieldOutputPath = (
+      outputPath
         .split(path.sep)
         .slice(0, outputPath.split(path.sep).length - 1)
-        .join(path.sep) + '/shield')
-        .split(path.sep)
-        .join(path.posix.sep);
+        .join(path.sep) + '/shield'
+    )
+      .split(path.sep)
+      .join(path.posix.sep);
 
-    shieldOutputPath = path.relative(path.join(outputPath, 'routers', 'helpers'), shieldOutputPath)
+    shieldOutputPath = path.relative(
+      path.join(outputPath, 'routers', 'helpers'),
+      shieldOutputPath,
+    );
 
     await PrismaTrpcShieldGenerator({
       ...options,
@@ -91,8 +94,9 @@ export async function generate(options: GeneratorOptions) {
 
   generateCreateRouterImport(appRouter, config.withMiddleware);
   appRouter.addStatements(/* ts */ `
-  export const appRouter = ${config.withMiddleware ? 'createProtectedRouter' : 'createRouter'
-    }()`);
+  export const appRouter = ${
+    config.withMiddleware ? 'createProtectedRouter' : 'createRouter'
+  }()`);
 
   prismaClientDmmf.mappings.modelOperations.forEach((modelOperation) => {
     const { model, ...operations } = modelOperation;

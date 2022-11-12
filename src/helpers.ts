@@ -79,45 +79,13 @@ export function generateProcedure(
   modelName: string,
   opType: string,
 ) {
-  let input = 'input';
-  const nameWithoutModel = name.replace(modelName as string, '');
-  switch (nameWithoutModel) {
-    case 'findUnique':
-      input = '{ where: input.where }';
-      break;
-    case 'findFirst':
-    case 'findMany':
-      break;
-    case 'deleteOne':
-      input = '{ where: input.where }';
-      break;
-    case 'deleteMany':
-    case 'updateMany':
-    case 'aggregate':
-      break;
-    case 'groupBy':
-      input =
-        '{ where: input.where, orderBy: input.orderBy, by: input.by, having: input.having, take: input.take, skip: input.skip }';
-      break;
-    case 'createOne':
-    case 'createMany':
-      input = '{ data: input.data }';
-      break;
-    case 'updateOne':
-      input = '{ where: input.where, data: input.data }';
-      break;
-    case 'upsertOne':
-      input =
-        '{ where: input.where, create: input.create, update: input.update }';
-      break;
-  }
   sourceFile.addStatements(/* ts */ `
   .${getProcedureTypeByOpName(opType)}("${name}", {
     input: ${typeName},
     async resolve({ ctx, input }) {
       const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
     modelName,
-  )}.${opType.replace('One', '')}(${input});
+  )}.${opType.replace('One', '')}(input);
       return ${name};
     },
   })`);
@@ -127,7 +95,7 @@ export function generateRouterSchemaImports(
   sourceFile: SourceFile,
   name: string,
   hasCreateMany: boolean,
-  provider: string
+  provider: string,
 ) {
   let statements = [
     `import { ${name}FindUniqueSchema } from "../schemas/findUnique${name}.schema";`,
@@ -152,13 +120,12 @@ export function generateRouterSchemaImports(
     `import { ${name}GroupBySchema } from "../schemas/groupBy${name}.schema";`,
   ]);
 
-  if(provider === "mongodb") {
+  if (provider === 'mongodb') {
     statements = statements.concat([
       `import { ${name}FindRawObjectSchema } from "../schemas/objects/${name}FindRaw.schema";`,
       `import { ${name}AggregateRawObjectSchema } from "../schemas/objects/${name}AggregateRaw.schema";`,
     ]);
   }
-
 
   sourceFile.addStatements(/* ts */ statements.join('\n'));
 }

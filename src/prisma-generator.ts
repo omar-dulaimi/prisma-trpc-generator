@@ -120,12 +120,15 @@ export async function generate(options: GeneratorOptions) {
     modelRouter.addStatements(/* ts */ `
     export const ${plural}Router = createRouter()`);
     for (const [opType, opNameWithModel] of Object.entries(operations)) {
+      const baseOpType = opType.replace('OrThrow', '');
+
       generateProcedure(
         modelRouter,
         opNameWithModel,
-        getInputTypeByOpName(opType, model),
+        getInputTypeByOpName(baseOpType, model),
         model,
         opType,
+        baseOpType,
       );
     }
     modelRouter.formatText({ indentSize: 2 });

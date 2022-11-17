@@ -78,9 +78,10 @@ export function generateProcedure(
   typeName: string,
   modelName: string,
   opType: string,
+  baseOpType: string,
 ) {
   sourceFile.addStatements(/* ts */ `
-  .${getProcedureTypeByOpName(opType)}("${name}", {
+  .${getProcedureTypeByOpName(baseOpType)}("${name}", {
     input: ${typeName},
     async resolve({ ctx, input }) {
       const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(

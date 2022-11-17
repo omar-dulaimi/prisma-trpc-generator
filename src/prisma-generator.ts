@@ -127,6 +127,7 @@ export async function generate(options: GeneratorOptions) {
         opNameWithModel,
         getInputTypeByOpName(baseOpType, model),
         model,
+        opType,
         baseOpType,
       );
     }

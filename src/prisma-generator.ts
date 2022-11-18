@@ -15,6 +15,7 @@ import {
   generateShieldImport,
   generatetRPCImport,
   getInputTypeByOpName,
+  resolveModelsComments
 } from './helpers';
 import { project } from './project';
 import removeDir from './utils/removeDir';
@@ -70,6 +71,10 @@ export async function generate(options: GeneratorOptions) {
     previewFeatures: prismaClientProvider.previewFeatures,
   });
 
+  const modelOperations = prismaClientDmmf.mappings.modelOperations;
+  const models = prismaClientDmmf.datamodel.models;
+  const hiddenModels: string[] = [];
+  resolveModelsComments(models, hiddenModels);
   const createRouter = project.createSourceFile(
     path.resolve(outputDir, 'routers', 'helpers', 'createRouter.ts'),
     undefined,
@@ -98,8 +103,9 @@ export async function generate(options: GeneratorOptions) {
     config.withMiddleware ? 'createProtectedRouter' : 'createRouter'
   }()`);
 
-  prismaClientDmmf.mappings.modelOperations.forEach((modelOperation) => {
+  for (const modelOperation of modelOperations) {
     const { model, ...operations } = modelOperation;
+    if (hiddenModels.includes(model)) continue;
     const plural = pluralize(model.toLowerCase());
     const hasCreateMany = Boolean(operations.createMany);
     generateRouterImport(appRouter, plural, model);
@@ -118,7 +124,7 @@ export async function generate(options: GeneratorOptions) {
     );
 
     modelRouter.addStatements(/* ts */ `
-    export const ${plural}Router = createRouter()`);
+      export const ${plural}Router = createRouter()`);
     for (const [opType, opNameWithModel] of Object.entries(operations)) {
       const baseOpType = opType.replace('OrThrow', '');
 
@@ -133,8 +139,8 @@ export async function generate(options: GeneratorOptions) {
     }
     modelRouter.formatText({ indentSize: 2 });
     appRouter.addStatements(/* ts */ `
-    .merge('${model.toLowerCase()}.', ${plural}Router)`);
-  });
+      .merge('${model.toLowerCase()}.', ${plural}Router)`);
+  }
 
   appRouter.formatText({ indentSize: 2 });
   await project.save();

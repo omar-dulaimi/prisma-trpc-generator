@@ -1,6 +1,6 @@
 {
   "name": "prisma-trpc-generator",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Prisma 2+ generator to emit fully implemented tRPC routers",
   "repository": "https://github.com/omar-dulaimi/prisma-trpc-generator",
   "bin": {

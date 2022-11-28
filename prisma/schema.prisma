@@ -13,12 +13,12 @@ datasource db {
   url      = "file:./dev.db"
 }
 
-/// @@tRPCGen.model(hide: true)
 model User {
   id    Int     @id @default(autoincrement())
   email String  @unique
   name  String?
   posts Post[]
+  books Book[]
 }
 
 model Post {
@@ -31,4 +31,18 @@ model Post {
   viewCount Int      @default(0)
   author    User?    @relation(fields: [authorId], references: [id])
   authorId  Int?
+  likes     BigInt
+}
+
+/// @@Gen.model(hide: true)
+model Book {
+  id       Int    @unique
+  title    String
+  author   User?  @relation(fields: [authorId], references: [id])
+  authorId Int?
+}
+
+model Map {
+  key   String @id
+  value String
 }

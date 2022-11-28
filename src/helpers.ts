@@ -214,7 +214,7 @@ export function resolveModelsComments(
   models: DMMF.Model[],
   hiddenModels: string[],
 ) {
-  const modelAttributeRegex = /(@@tRPCGen\.)+([A-z])+(\()+(.+)+(\))+/;
+  const modelAttributeRegex = /(@@Gen\.)+([A-z])+(\()+(.+)+(\))+/;
   const attributeNameRegex = /(?:\.)+([A-Za-z])+(?:\()+/;
   const attributeArgsRegex = /(?:\()+([A-Za-z])+\:+(.+)+(?:\))+/;
 

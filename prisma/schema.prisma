@@ -18,6 +18,7 @@ model User {
   email String  @unique
   name  String?
   posts Post[]
+  books Book[]
 }
 
 model Post {
@@ -30,4 +31,18 @@ model Post {
   viewCount Int      @default(0)
   author    User?    @relation(fields: [authorId], references: [id])
   authorId  Int?
+  likes     BigInt
+}
+
+/// @@Gen.model(hide: true)
+model Book {
+  id       Int    @unique
+  title    String
+  author   User?  @relation(fields: [authorId], references: [id])
+  authorId Int?
+}
+
+model Map {
+  key   String @id
+  value String
 }

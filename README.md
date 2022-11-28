@@ -3,8 +3,6 @@
 [![HitCount](https://hits.dwyl.com/omar-dulaimi/prisma-trpc-generator.svg?style=flat)](http://hits.dwyl.com/omar-dulaimi/prisma-trpc-generator)
 [![npm](https://img.shields.io/npm/l/prisma-trpc-generator.svg)](LICENSE)
 
-
-
 <p align="center">
   <a href="https://github.com/omar-dulaimi/prisma-trpc-generator">
     <img src="https://raw.githubusercontent.com/omar-dulaimi/prisma-trpc-generator/master/logo.png" alt="Logo" width="200" height="200">
@@ -28,14 +26,13 @@
   </a>
 </p>
 
-
-
 ## Table of Contents
 
 - [About The Project](#about-the-project)
 - [Supported Prisma Versions](#supported-prisma-versions)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Customizations](#customizations)
 - [Additional Options](#additional-options)
 
 # About The Project
@@ -44,9 +41,12 @@ Automatically generate fully implemented tRPC routers from your [Prisma](https:/
 
 # Supported Prisma Versions
 
-### Prisma 4  
+### Prisma 4
+
 - 0.2.0 and higher
-### Prisma 2/3 
+
+### Prisma 2/3
+
 - 0.1.12 and lower
 
 # Installation
@@ -117,6 +117,19 @@ will generate
 ![tRPC Routers](https://raw.githubusercontent.com/omar-dulaimi/prisma-trpc-generator/master/trpcRouters.png)
 
 5- Make sure you have a valid `Context` file, as specified in `contextPath` option. The official [tRPC docs](https://trpc.io/docs/context) for reference.
+
+# Customizations
+
+## Skipping entire models
+
+```prisma
+/// @@Gen.model(hide: true)
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+}
+```
 
 # Additional Options
 

@@ -81,13 +81,18 @@ export function generateProcedure(
   opType: string,
   baseOpType: string,
 ) {
+  let input = 'input';
+  const nameWithoutModel = name.replace(modelName as string, '');
+  if (nameWithoutModel === "groupBy") {
+    input = '{ where: input.where, orderBy: input.orderBy, by: input.by, having: input.having, take: input.take, skip: input.skip }';
+  }
   sourceFile.addStatements(/* ts */ `
   .${getProcedureTypeByOpName(baseOpType)}("${name}", {
     input: ${typeName},
     async resolve({ ctx, input }) {
       const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
     modelName,
-  )}.${opType.replace('One', '')}(input);
+  )}.${opType.replace('One', '')}(${input});
       return ${name};
     },
   })`);

@@ -8,14 +8,17 @@ import { generate as PrismaZodGenerator } from 'prisma-zod-generator/lib/prisma-
 import { configSchema } from './config';
 import {
   generateBaseRouter,
+  generateBaseRouterv10,
   generateCreateRouterImport,
+  generateCreateRouterImportv10,
   generateProcedure,
   generateRouterImport,
   generateRouterSchemaImports,
   generateShieldImport,
   generatetRPCImport,
+  generateProcedurev10,
   getInputTypeByOpName,
-  resolveModelsComments
+  resolveModelsComments,
 } from './helpers';
 import { project } from './project';
 import removeDir from './utils/removeDir';
@@ -85,7 +88,12 @@ export async function generate(options: GeneratorOptions) {
   if (config.withShield) {
     generateShieldImport(createRouter, shieldOutputPath);
   }
-  generateBaseRouter(createRouter, config);
+
+  if (config.v10) {
+    generateBaseRouterv10(createRouter, config);
+  } else {
+    generateBaseRouter(createRouter, config);
+  }
 
   createRouter.formatText({
     indentSize: 2,
@@ -97,11 +105,20 @@ export async function generate(options: GeneratorOptions) {
     { overwrite: true },
   );
 
-  generateCreateRouterImport(appRouter, config.withMiddleware);
-  appRouter.addStatements(/* ts */ `
-  export const appRouter = ${
-    config.withMiddleware ? 'createProtectedRouter' : 'createRouter'
-  }()`);
+  if (config.v10) {
+    generateCreateRouterImportv10(appRouter, config.withMiddleware);
+  } else {
+    generateCreateRouterImport(appRouter, config.withMiddleware);
+  }
+  const routerStatements = [];
+
+  if (config.v10) {
+  } else {
+    appRouter.addStatements(/* ts */ `
+    export const appRouter = ${
+      config.withMiddleware ? 'createProtectedRouter' : 'createRouter'
+    }()`);
+  }
 
   for (const modelOperation of modelOperations) {
     const { model, ...operations } = modelOperation;
@@ -115,7 +132,11 @@ export async function generate(options: GeneratorOptions) {
       { overwrite: true },
     );
 
-    generateCreateRouterImport(modelRouter, false);
+    if (config.v10) {
+      generateCreateRouterImportv10(modelRouter, false);
+    } else {
+      generateCreateRouterImport(modelRouter, false);
+    }
     generateRouterSchemaImports(
       modelRouter,
       model,
@@ -123,23 +144,58 @@ export async function generate(options: GeneratorOptions) {
       dataSource.provider,
     );
 
-    modelRouter.addStatements(/* ts */ `
+    if (config.v10) {
+      modelRouter.addStatements(/* ts */ `
+      export const ${plural}Router = t.router({`);
+    } else {
+      modelRouter.addStatements(/* ts */ `
       export const ${plural}Router = createRouter()`);
+    }
     for (const [opType, opNameWithModel] of Object.entries(operations)) {
       const baseOpType = opType.replace('OrThrow', '');
 
-      generateProcedure(
-        modelRouter,
-        opNameWithModel,
-        getInputTypeByOpName(baseOpType, model),
-        model,
-        opType,
-        baseOpType,
-      );
+      if (config.v10) {
+        generateProcedurev10(
+          modelRouter,
+          opNameWithModel,
+          getInputTypeByOpName(baseOpType, model),
+          model,
+          opType,
+          baseOpType,
+        );
+      } else {
+        generateProcedure(
+          modelRouter,
+          opNameWithModel,
+          getInputTypeByOpName(baseOpType, model),
+          model,
+          opType,
+          baseOpType,
+        );
+      }
     }
-    modelRouter.formatText({ indentSize: 2 });
+
+    if (config.v10) {
+      modelRouter.addStatements(/* ts */ `
+    })`);
+
+      modelRouter.formatText({ indentSize: 2 });
+      // appRouter.addStatements(/* ts */ `
+      //   .merge('${model.toLowerCase()}', ${plural}Router)`);
+      routerStatements.push(/* ts */ `
+      ${model.toLowerCase()}: ${plural}Router`);
+    }
+    if (config.v10) {
+    } else {
+      appRouter.addStatements(/* ts */ `
+        .merge('${model.toLowerCase()}.', ${plural}Router)`);
+    }
+  }
+
+  if (config.v10) {
     appRouter.addStatements(/* ts */ `
-      .merge('${model.toLowerCase()}.', ${plural}Router)`);
+    export const appRouter = t.router({${routerStatements}})
+    `);
   }
 
   appRouter.formatText({ indentSize: 2 });

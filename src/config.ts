@@ -7,7 +7,8 @@ const configBoolean = z
 export const configSchema = z.object({
   withMiddleware: configBoolean.default('true'),
   withShield: configBoolean.default('true'),
-  contextPath: z.string().default("../../../../src/context")
+  contextPath: z.string().default('../../../../src/context'),
+  v10: configBoolean.default('false'),
 });
 
 export type Config = z.infer<typeof configSchema>;

@@ -15,6 +15,16 @@ export const generateCreateRouterImport = (
   });
 };
 
+export const generateCreateRouterImportv10 = (
+  sourceFile: SourceFile,
+  isProtectedMiddleware: boolean,
+) => {
+  sourceFile.addImportDeclaration({
+    moduleSpecifier: './helpers/createRouter',
+    namedImports: ['t'],
+  });
+};
+
 export const generatetRPCImport = (sourceFile: SourceFile) => {
   sourceFile.addImportDeclaration({
     moduleSpecifier: '@trpc/server',
@@ -73,6 +83,39 @@ export function generateBaseRouter(sourceFile: SourceFile, config: Config) {
     }`);
 }
 
+export function generateBaseRouterv10(sourceFile: SourceFile, config: Config) {
+  sourceFile.addStatements(/* ts */ `
+  import { Context } from '${config.contextPath}';
+  `);
+
+  sourceFile.addStatements(/* ts */ `
+  export const t = trpc.initTRPC.context<Context>().create();
+  `);
+
+  sourceFile.addStatements(/* ts */ `
+  export const publicProcedure = t.procedure;`);
+
+  const middlewares = [];
+  if (config.withMiddleware) {
+    middlewares.push(/* ts */ `
+    .use(({ ctx, next }) => {
+      console.log("inside middleware!")
+      return next();
+    })`);
+  }
+
+  if (config.withShield) {
+    middlewares.push(/* ts */ `
+    .use(permissions)`);
+  }
+
+  if (middlewares.length > 0) {
+    sourceFile.addStatements(/* ts */ `
+  export const protectedProcedure = t.procedure
+        ${middlewares.join('\r')};`);
+  }
+}
+
 export function generateProcedure(
   sourceFile: SourceFile,
   name: string,
@@ -91,6 +134,24 @@ export function generateProcedure(
       return ${name};
     },
   })`);
+}
+
+export function generateProcedurev10(
+  sourceFile: SourceFile,
+  name: string,
+  typeName: string,
+  modelName: string,
+  opType: string,
+  baseOpType: string,
+) {
+  sourceFile.addStatements(/* ts */ `${name}: t.procedure
+    .input(${typeName})
+    .${getProcedureTypeByOpName(baseOpType)}(async ({ ctx, input }) => {
+      const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
+    modelName,
+  )}.${opType.replace('One', '')}(input);
+      return ${name};
+    }),`);
 }
 
 export function generateRouterSchemaImports(

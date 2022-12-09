@@ -36,7 +36,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "@trpc/server": "^9.27.2",
+    "@trpc/server": "^10.4.3",
     "@types/node": "^18.7.14",
     "@types/pluralize": "^0.0.29",
     "prisma": "^4.3.1",

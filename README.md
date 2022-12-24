@@ -32,6 +32,9 @@
 - [Supported Prisma Versions](#supported-prisma-versions)
     - [Prisma 4](#prisma-4)
     - [Prisma 2/3](#prisma-23)
+- [Supported Prisma Versions](#supported-prisma-versions-1)
+    - [tRPC 10](#trpc-10)
+    - [tRPC 9](#trpc-9)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Customizations](#customizations)
@@ -51,6 +54,16 @@ Automatically generate fully implemented tRPC routers from your [Prisma](https:/
 ### Prisma 2/3
 
 - 0.1.12 and lower
+
+# Supported Prisma Versions
+
+### tRPC 10
+
+- 0.8.0 and higher
+
+### tRPC 9
+
+- 0.7.2 and lower
 
 # Installation
 

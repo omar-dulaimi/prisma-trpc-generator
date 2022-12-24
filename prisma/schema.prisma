@@ -9,7 +9,6 @@ generator trpc {
   withMiddleware = false
   withShield     = false
   contextPath    = "../../../../example/context"
-  v10           = true
 }
 
 datasource db {

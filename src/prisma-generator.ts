@@ -8,15 +8,12 @@ import { generate as PrismaZodGenerator } from 'prisma-zod-generator/lib/prisma-
 import { configSchema } from './config';
 import {
   generateBaseRouter,
-  generateBaseRouterv10,
   generateCreateRouterImport,
-  generateCreateRouterImportv10,
   generateProcedure,
   generateRouterImport,
   generateRouterSchemaImports,
   generateShieldImport,
   generatetRPCImport,
-  generateProcedurev10,
   getInputTypeByOpName,
   resolveModelsComments,
 } from './helpers';
@@ -89,11 +86,7 @@ export async function generate(options: GeneratorOptions) {
     generateShieldImport(createRouter, shieldOutputPath);
   }
 
-  if (config.v10) {
-    generateBaseRouterv10(createRouter, config);
-  } else {
-    generateBaseRouter(createRouter, config);
-  }
+  generateBaseRouter(createRouter, config);
 
   createRouter.formatText({
     indentSize: 2,
@@ -105,20 +98,8 @@ export async function generate(options: GeneratorOptions) {
     { overwrite: true },
   );
 
-  if (config.v10) {
-    generateCreateRouterImportv10(appRouter, config.withMiddleware);
-  } else {
-    generateCreateRouterImport(appRouter, config.withMiddleware);
-  }
+  generateCreateRouterImport(appRouter, config.withMiddleware);
   const routerStatements = [];
-
-  if (config.v10) {
-  } else {
-    appRouter.addStatements(/* ts */ `
-    export const appRouter = ${
-      config.withMiddleware ? 'createProtectedRouter' : 'createRouter'
-    }()`);
-  }
 
   for (const modelOperation of modelOperations) {
     const { model, ...operations } = modelOperation;
@@ -132,11 +113,7 @@ export async function generate(options: GeneratorOptions) {
       { overwrite: true },
     );
 
-    if (config.v10) {
-      generateCreateRouterImportv10(modelRouter, false);
-    } else {
-      generateCreateRouterImport(modelRouter, false);
-    }
+    generateCreateRouterImport(modelRouter, false);
     generateRouterSchemaImports(
       modelRouter,
       model,
@@ -144,59 +121,34 @@ export async function generate(options: GeneratorOptions) {
       dataSource.provider,
     );
 
-    if (config.v10) {
-      modelRouter.addStatements(/* ts */ `
+    modelRouter.addStatements(/* ts */ `
       export const ${plural}Router = t.router({`);
-    } else {
-      modelRouter.addStatements(/* ts */ `
-      export const ${plural}Router = createRouter()`);
-    }
     for (const [opType, opNameWithModel] of Object.entries(operations)) {
       const baseOpType = opType.replace('OrThrow', '');
 
-      if (config.v10) {
-        generateProcedurev10(
-          modelRouter,
-          opNameWithModel,
-          getInputTypeByOpName(baseOpType, model),
-          model,
-          opType,
-          baseOpType,
-        );
-      } else {
-        generateProcedure(
-          modelRouter,
-          opNameWithModel,
-          getInputTypeByOpName(baseOpType, model),
-          model,
-          opType,
-          baseOpType,
-        );
-      }
+      generateProcedure(
+        modelRouter,
+        opNameWithModel,
+        getInputTypeByOpName(baseOpType, model),
+        model,
+        opType,
+        baseOpType,
+      );
     }
 
-    if (config.v10) {
-      modelRouter.addStatements(/* ts */ `
+    modelRouter.addStatements(/* ts */ `
     })`);
 
-      modelRouter.formatText({ indentSize: 2 });
-      // appRouter.addStatements(/* ts */ `
-      //   .merge('${model.toLowerCase()}', ${plural}Router)`);
-      routerStatements.push(/* ts */ `
+    modelRouter.formatText({ indentSize: 2 });
+    // appRouter.addStatements(/* ts */ `
+    //   .merge('${model.toLowerCase()}', ${plural}Router)`);
+    routerStatements.push(/* ts */ `
       ${model.toLowerCase()}: ${plural}Router`);
-    }
-    if (config.v10) {
-    } else {
-      appRouter.addStatements(/* ts */ `
-        .merge('${model.toLowerCase()}.', ${plural}Router)`);
-    }
   }
 
-  if (config.v10) {
-    appRouter.addStatements(/* ts */ `
+  appRouter.addStatements(/* ts */ `
     export const appRouter = t.router({${routerStatements}})
     `);
-  }
 
   appRouter.formatText({ indentSize: 2 });
   await project.save();

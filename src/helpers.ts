@@ -9,18 +9,6 @@ export const generateCreateRouterImport = (
 ) => {
   sourceFile.addImportDeclaration({
     moduleSpecifier: './helpers/createRouter',
-    namedImports: [
-      isProtectedMiddleware ? 'createProtectedRouter' : 'createRouter',
-    ],
-  });
-};
-
-export const generateCreateRouterImportv10 = (
-  sourceFile: SourceFile,
-  isProtectedMiddleware: boolean,
-) => {
-  sourceFile.addImportDeclaration({
-    moduleSpecifier: './helpers/createRouter',
     namedImports: ['t'],
   });
 };
@@ -56,36 +44,6 @@ export const generateRouterImport = (
 export function generateBaseRouter(sourceFile: SourceFile, config: Config) {
   sourceFile.addStatements(/* ts */ `
   import { Context } from '${config.contextPath}';
-    
-  export function createRouter() {
-    return trpc.router<Context>();
-  }`);
-
-  const middlewares = [];
-  if (config.withMiddleware) {
-    middlewares.push(/* ts */ `
-    .middleware(({ ctx, next }) => {
-      console.log("inside middleware!")
-      return next();
-    })`);
-  }
-
-  if (config.withShield) {
-    middlewares.push(/* ts */ `
-    .middleware(permissions)`);
-  }
-
-  sourceFile.addStatements(/* ts */ `
-    export function createProtectedRouter() {
-      return trpc
-        .router<Context>()
-        ${middlewares.join('\r')};
-    }`);
-}
-
-export function generateBaseRouterv10(sourceFile: SourceFile, config: Config) {
-  sourceFile.addStatements(/* ts */ `
-  import { Context } from '${config.contextPath}';
   `);
 
   sourceFile.addStatements(/* ts */ `
@@ -117,26 +75,6 @@ export function generateBaseRouterv10(sourceFile: SourceFile, config: Config) {
 }
 
 export function generateProcedure(
-  sourceFile: SourceFile,
-  name: string,
-  typeName: string,
-  modelName: string,
-  opType: string,
-  baseOpType: string,
-) {
-  sourceFile.addStatements(/* ts */ `
-  .${getProcedureTypeByOpName(baseOpType)}("${name}", {
-    input: ${typeName},
-    async resolve({ ctx, input }) {
-      const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
-    modelName,
-  )}.${opType.replace('One', '')}(input);
-      return ${name};
-    },
-  })`);
-}
-
-export function generateProcedurev10(
   sourceFile: SourceFile,
   name: string,
   typeName: string,

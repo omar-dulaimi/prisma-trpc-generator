@@ -3,13 +3,30 @@ import { SourceFile } from 'ts-morph';
 import { Config } from './config';
 import { uncapitalizeFirstLetter } from './utils/uncapitalizeFirstLetter';
 
-export const generateCreateRouterImport = (
-  sourceFile: SourceFile,
-  isProtectedMiddleware: boolean,
-) => {
+const getProcedureName = (config: Config) => {
+  return config.withShield
+    ? 'shieldedProcedure'
+    : config.withMiddleware
+    ? 'protectedProcedure'
+    : 'publicProcedure';
+};
+
+export const generateCreateRouterImport = ({
+  sourceFile,
+  config,
+}: {
+  sourceFile: SourceFile;
+  config?: Config;
+}) => {
+  const imports = ['t'];
+
+  if (config) {
+    imports.push(getProcedureName(config));
+  }
+
   sourceFile.addImportDeclaration({
     moduleSpecifier: './helpers/createRouter',
-    namedImports: ['t'],
+    namedImports: imports,
   });
 };
 
@@ -75,14 +92,11 @@ export function generateBaseRouter(sourceFile: SourceFile, config: Config) {
   }
 
   sourceFile.addStatements(/* ts */ `
-  export const publicProcedure = t.procedure${
-    config.withMiddleware ? '.use(globalMiddleware)' : ''
-  };`);
+  export const publicProcedure = t.procedure;`);
 
   if (middlewares.length > 0) {
-    const procName = config.withShield
-      ? 'shieldedProcedure'
-      : 'protectedProcedure';
+    const procName = getProcedureName(config);
+
     middlewares.forEach((middleware, i) => {
       if (i === 0) {
         sourceFile.addStatements(/* ts */ `
@@ -108,8 +122,9 @@ export function generateProcedure(
   modelName: string,
   opType: string,
   baseOpType: string,
+  config: Config,
 ) {
-  sourceFile.addStatements(/* ts */ `${name}: t.procedure
+  sourceFile.addStatements(/* ts */ `${name}: ${getProcedureName(config)}
     .input(${typeName})
     .${getProcedureTypeByOpName(baseOpType)}(async ({ ctx, input }) => {
       const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(

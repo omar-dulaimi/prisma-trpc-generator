@@ -98,7 +98,10 @@ export async function generate(options: GeneratorOptions) {
     { overwrite: true },
   );
 
-  generateCreateRouterImport(appRouter, config.withMiddleware);
+  generateCreateRouterImport({
+    sourceFile: appRouter,
+  });
+
   const routerStatements = [];
 
   for (const modelOperation of modelOperations) {
@@ -113,7 +116,12 @@ export async function generate(options: GeneratorOptions) {
       { overwrite: true },
     );
 
-    generateCreateRouterImport(modelRouter, false);
+
+    generateCreateRouterImport({
+      sourceFile: modelRouter,
+      config,
+    });
+
     generateRouterSchemaImports(
       modelRouter,
       model,
@@ -133,6 +141,7 @@ export async function generate(options: GeneratorOptions) {
         model,
         opType,
         baseOpType,
+        config,
       );
     }
 

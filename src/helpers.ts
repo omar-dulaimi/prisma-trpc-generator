@@ -50,44 +50,54 @@ export function generateBaseRouter(sourceFile: SourceFile, config: Config) {
   export const t = trpc.initTRPC.context<Context>().create();
   `);
 
-  sourceFile.addStatements(/* ts */ `
-  export const publicProcedure = t.procedure;`);
-
-  sourceFile.addStatements(/* ts */ `
-  export const globalMiddleware = t.middleware(async ({ ctx, next }) => {
-    console.log('inside middleware!')
-    return next()
-  })`);
-
   const middlewares = [];
+
   if (config.withMiddleware) {
-    middlewares.push(/* ts */ `.use(globalMiddleware)`);
+    sourceFile.addStatements(/* ts */ `
+    export const globalMiddleware = t.middleware(async ({ ctx, next }) => {
+      console.log('inside middleware!')
+      return next()
+    });`);
+    middlewares.push({
+      type: 'global',
+      value: /* ts */ `.use(globalMiddleware)`,
+    });
   }
 
   if (config.withShield) {
-    middlewares.push(/* ts */ `
-    .use(permissions)`);
+    sourceFile.addStatements(/* ts */ `
+    export const permissionsMiddleware = t.middleware(permissions);`);
+    middlewares.push({
+      type: 'shield',
+      value: /* ts */ `
+    .use(permissions)`,
+    });
   }
+
+  sourceFile.addStatements(/* ts */ `
+  export const publicProcedure = t.procedure${
+    config.withMiddleware ? '.use(globalMiddleware)' : ''
+  };`);
 
   if (middlewares.length > 0) {
-    sourceFile.addStatements(/* ts */ `
-  export const protectedProcedure = t.procedure
-        ${middlewares.join('\r')};`);
-  }
+    const procName = config.withShield
+      ? 'shieldedProcedure'
+      : 'protectedProcedure';
+    middlewares.forEach((middleware, i) => {
+      if (i === 0) {
+        sourceFile.addStatements(/* ts */ `
+        export const ${procName} = t.procedure
+        `);
+      }
 
-  if (config.withShield) {
-    if (config.withMiddleware) {
       sourceFile.addStatements(/* ts */ `
-      export const permissionsMiddleware = t.middleware(permissions)`);
-      sourceFile.addStatements(/* ts */ `
-      export const shieldedProcedure = t.procedure.use(globalMiddleware).use(permissionsMiddleware)
-      `);
-    } else {
-      sourceFile.addStatements(/* ts */ `
-      export const permissionsMiddleware = t.middleware(permissions)`);
-      sourceFile.addStatements(/* ts */ `
-      export const shieldedProcedure = t.procedure.use(permissionsMiddleware)`);
-    }
+        .use(${
+          middleware.type === 'shield'
+            ? 'permissionsMiddleware'
+            : 'globalMiddleware'
+        })
+        `);
+    });
   }
 }
 

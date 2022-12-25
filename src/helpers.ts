@@ -28,11 +28,6 @@ export const generateShieldImport = (
     moduleSpecifier: `${shieldOutputPath}/shield`,
     namedImports: ['permissions'],
   });
-
-  // sourceFile.addImportDeclaration({
-  //   moduleSpecifier: './helpers/createRouter',
-  //   namedImports: ['shieldedProcedure'],
-  // });
 };
 
 export const generateRouterImport = (

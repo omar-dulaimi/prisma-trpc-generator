@@ -5,7 +5,7 @@
 
 <p align="center">
   <a href="https://github.com/omar-dulaimi/prisma-trpc-generator">
-    <img src="https://raw.githubusercontent.com/omar-dulaimi/prisma-trpc-generator/master/logo.png" alt="Logo" width="200" height="200">
+    <img src="https://raw.githubusercontent.com/omar-dulaimi/prisma-trpc-generator/master/logo.png" alt="Logo" width="200" height="200"/>
   </a>
   <h3 align="center">Prisma tRPC Generator</h3>
   <p align="center">
@@ -22,7 +22,7 @@
 
 <p align="center">
   <a href="https://www.buymeacoffee.com/omardulaimi">
-    <img src="https://cdn.buymeacoffee.com/buttons/default-black.png" alt="Buy Me A Coffee" height="41" width="174">
+    <img src="https://cdn.buymeacoffee.com/buttons/default-black.png" alt="Buy Me A Coffee" height="41" width="174"/>
   </a>
 </p>
 
@@ -30,9 +30,15 @@
 
 - [About The Project](#about-the-project)
 - [Supported Prisma Versions](#supported-prisma-versions)
+    - [Prisma 4](#prisma-4)
+    - [Prisma 2/3](#prisma-23)
+- [Supported tRPC Versions](#supported-trpc-versions)
+    - [tRPC 10](#trpc-10)
+    - [tRPC 9](#trpc-9)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Customizations](#customizations)
+  - [Skipping entire models](#skipping-entire-models)
 - [Additional Options](#additional-options)
 
 # About The Project
@@ -48,6 +54,16 @@ Automatically generate fully implemented tRPC routers from your [Prisma](https:/
 ### Prisma 2/3
 
 - 0.1.12 and lower
+
+# Supported tRPC Versions
+
+### tRPC 10
+
+- 0.8.0 and higher
+
+### tRPC 9
+
+- 0.7.2 and lower
 
 # Installation
 

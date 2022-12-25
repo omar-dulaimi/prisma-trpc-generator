@@ -3,15 +3,30 @@ import { SourceFile } from 'ts-morph';
 import { Config } from './config';
 import { uncapitalizeFirstLetter } from './utils/uncapitalizeFirstLetter';
 
-export const generateCreateRouterImport = (
-  sourceFile: SourceFile,
-  isProtectedMiddleware: boolean,
-) => {
+const getProcedureName = (config: Config) => {
+  return config.withShield
+    ? 'shieldedProcedure'
+    : config.withMiddleware
+    ? 'protectedProcedure'
+    : 'publicProcedure';
+};
+
+export const generateCreateRouterImport = ({
+  sourceFile,
+  config,
+}: {
+  sourceFile: SourceFile;
+  config?: Config;
+}) => {
+  const imports = ['t'];
+
+  if (config) {
+    imports.push(getProcedureName(config));
+  }
+
   sourceFile.addImportDeclaration({
     moduleSpecifier: './helpers/createRouter',
-    namedImports: [
-      isProtectedMiddleware ? 'createProtectedRouter' : 'createRouter',
-    ],
+    namedImports: imports,
   });
 };
 
@@ -46,31 +61,58 @@ export const generateRouterImport = (
 export function generateBaseRouter(sourceFile: SourceFile, config: Config) {
   sourceFile.addStatements(/* ts */ `
   import { Context } from '${config.contextPath}';
-    
-  export function createRouter() {
-    return trpc.router<Context>();
-  }`);
+  `);
+
+  sourceFile.addStatements(/* ts */ `
+  export const t = trpc.initTRPC.context<Context>().create();
+  `);
 
   const middlewares = [];
+
   if (config.withMiddleware) {
-    middlewares.push(/* ts */ `
-    .middleware(({ ctx, next }) => {
-      console.log("inside middleware!")
-      return next();
-    })`);
+    sourceFile.addStatements(/* ts */ `
+    export const globalMiddleware = t.middleware(async ({ ctx, next }) => {
+      console.log('inside middleware!')
+      return next()
+    });`);
+    middlewares.push({
+      type: 'global',
+      value: /* ts */ `.use(globalMiddleware)`,
+    });
   }
 
   if (config.withShield) {
-    middlewares.push(/* ts */ `
-    .middleware(permissions)`);
+    sourceFile.addStatements(/* ts */ `
+    export const permissionsMiddleware = t.middleware(permissions);`);
+    middlewares.push({
+      type: 'shield',
+      value: /* ts */ `
+    .use(permissions)`,
+    });
   }
 
   sourceFile.addStatements(/* ts */ `
-    export function createProtectedRouter() {
-      return trpc
-        .router<Context>()
-        ${middlewares.join('\r')};
-    }`);
+  export const publicProcedure = t.procedure;`);
+
+  if (middlewares.length > 0) {
+    const procName = getProcedureName(config);
+
+    middlewares.forEach((middleware, i) => {
+      if (i === 0) {
+        sourceFile.addStatements(/* ts */ `
+        export const ${procName} = t.procedure
+        `);
+      }
+
+      sourceFile.addStatements(/* ts */ `
+        .use(${
+          middleware.type === 'shield'
+            ? 'permissionsMiddleware'
+            : 'globalMiddleware'
+        })
+        `);
+    });
+  }
 }
 
 export function generateProcedure(
@@ -80,17 +122,16 @@ export function generateProcedure(
   modelName: string,
   opType: string,
   baseOpType: string,
+  config: Config,
 ) {
-  sourceFile.addStatements(/* ts */ `
-  .${getProcedureTypeByOpName(baseOpType)}("${name}", {
-    input: ${typeName},
-    async resolve({ ctx, input }) {
+  sourceFile.addStatements(/* ts */ `${name}: ${getProcedureName(config)}
+    .input(${typeName})
+    .${getProcedureTypeByOpName(baseOpType)}(async ({ ctx, input }) => {
       const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
     modelName,
   )}.${opType.replace('One', '')}(input);
       return ${name};
-    },
-  })`);
+    }),`);
 }
 
 export function generateRouterSchemaImports(

@@ -15,7 +15,7 @@ import {
   generateShieldImport,
   generatetRPCImport,
   getInputTypeByOpName,
-  resolveModelsComments,
+  resolveModelsComments
 } from './helpers';
 import { project } from './project';
 import removeDir from './utils/removeDir';
@@ -140,8 +140,6 @@ export async function generate(options: GeneratorOptions) {
     })`);
 
     modelRouter.formatText({ indentSize: 2 });
-    // appRouter.addStatements(/* ts */ `
-    //   .merge('${model.toLowerCase()}', ${plural}Router)`);
     routerStatements.push(/* ts */ `
       ${model.toLowerCase()}: ${plural}Router`);
   }

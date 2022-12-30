@@ -90,7 +90,8 @@ generator trpc {
   provider       = "prisma-trpc-generator"
   withMiddleware = false
   withShield     = false
-  contextPath    = "../../../../src/context"
+  contextPath       = "../src/context"
+  trpcOptionsPath   = "../src/trpcOptions"
 }
 ```
 
@@ -153,7 +154,6 @@ export default {
     };
   },
 };
-
 ```
 
 # Customizations
@@ -190,6 +190,7 @@ generator trpc {
   withMiddleware     = false
   withShield         = false
   contextPath        = "../context"
+  trpcOptionsPath        = "../trpcOptions"
   isGenerateSelect   = true
   isGenerateInclude  = true
 }

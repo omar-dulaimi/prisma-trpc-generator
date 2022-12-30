@@ -132,7 +132,29 @@ will generate
 
 ![tRPC Routers](https://raw.githubusercontent.com/omar-dulaimi/prisma-trpc-generator/master/trpcRouters.png)
 
-5- Make sure you have a valid `Context` file, as specified in `contextPath` option. The official [tRPC docs](https://trpc.io/docs/context) for reference.
+5- Make sure you have a valid `Context` file, as specified in `contextPath` option. The official [Context](https://trpc.io/docs/context) for reference.
+
+6- Optionally, you can specify a `trpcOptionsPath` to set various tRPC options (like transformer, error formatter, etc). Find about all possible options [here](https://trpc.io/docs/router#advanced-usage).
+
+```ts
+import { ZodError } from 'zod';
+
+export default {
+  errorFormatter({ shape, error }) {
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        zodError:
+          error.code === 'BAD_REQUEST' && error.cause instanceof ZodError
+            ? error.cause.flatten()
+            : null,
+      },
+    };
+  },
+};
+
+```
 
 # Customizations
 
@@ -149,14 +171,15 @@ model User {
 
 # Additional Options
 
-| Option              | Description                                                                | Type      | Default                   |
-| ------------------- | -------------------------------------------------------------------------- | --------- | ------------------------- |
-| `output`            | Output directory for the generated routers and zod schemas                 | `string`  | `./generated`             |
-| `withMiddleware`    | Attaches a global middleware that runs before all procedures               | `boolean` | `true`                    |
-| `withShield`        | Generates a tRPC Shield to use as a permissions layer                      | `boolean` | `true`                    |
-| `contextPath`       | Sets the context path used in your routers                                 | `string`  | `../../../../src/context` |
-| `isGenerateSelect`  | Enables the generation of Select related schemas and the select property   | `boolean` | `false`                   |
-| `isGenerateInclude` | Enables the generation of Include related schemas and the include property | `boolean` | `false`                   |
+| Option              | Description                                                                | Type      | Default                       |
+| ------------------- | -------------------------------------------------------------------------- | --------- | ----------------------------- |
+| `output`            | Output directory for the generated routers and zod schemas                 | `string`  | `./generated`                 |
+| `withMiddleware`    | Attaches a global middleware that runs before all procedures               | `boolean` | `true`                        |
+| `withShield`        | Generates a tRPC Shield to use as a permissions layer                      | `boolean` | `true`                        |
+| `contextPath`       | Sets the context path used in your routers                                 | `string`  | `../../../../src/context`     |
+| `trpcOptionsPath`   | Sets the tRPC instance options                                             | `string`  | `../../../../src/trpcOptions` |
+| `isGenerateSelect`  | Enables the generation of Select related schemas and the select property   | `boolean` | `false`                       |
+| `isGenerateInclude` | Enables the generation of Include related schemas and the include property | `boolean` | `false`                       |
 
 Use additional options in the `schema.prisma`
 

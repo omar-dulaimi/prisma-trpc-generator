@@ -1,6 +1,8 @@
-import { DMMF } from '@prisma/generator-helper';
+import { DMMF, EnvValue, GeneratorOptions } from '@prisma/generator-helper';
+import { parseEnvValue } from '@prisma/internals';
 import { SourceFile } from 'ts-morph';
 import { Config } from './config';
+import getRelativePath from './utils/getRelativePath';
 import { uncapitalizeFirstLetter } from './utils/uncapitalizeFirstLetter';
 
 const getProcedureName = (config: Config) => {
@@ -58,13 +60,30 @@ export const generateRouterImport = (
   });
 };
 
-export function generateBaseRouter(sourceFile: SourceFile, config: Config) {
+export function generateBaseRouter(
+  sourceFile: SourceFile,
+  config: Config,
+  options: GeneratorOptions,
+) {
+  const outputDir = parseEnvValue(options.generator.output as EnvValue);
   sourceFile.addStatements(/* ts */ `
-  import { Context } from '${config.contextPath}';
+  import { Context } from '${getRelativePath(outputDir, config.contextPath, options.schemaPath)}';
   `);
 
+  if (config.trpcOptionsPath) {
+    sourceFile.addStatements(/* ts */ `
+    import trpcOptions from '${getRelativePath(
+      outputDir,
+      config.trpcOptionsPath,
+      options.schemaPath
+    )}';
+    `);
+  }
+
   sourceFile.addStatements(/* ts */ `
-  export const t = trpc.initTRPC.context<Context>().create();
+  export const t = trpc.initTRPC.context<Context>().create(${
+    config.trpcOptionsPath ? 'trpcOptions' : ''
+  });
   `);
 
   const middlewares = [];

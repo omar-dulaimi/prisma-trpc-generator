@@ -86,7 +86,7 @@ export async function generate(options: GeneratorOptions) {
     generateShieldImport(createRouter, shieldOutputPath);
   }
 
-  generateBaseRouter(createRouter, config);
+  generateBaseRouter(createRouter, config, options);
 
   createRouter.formatText({
     indentSize: 2,

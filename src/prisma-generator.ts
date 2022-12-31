@@ -85,7 +85,8 @@ export async function generate(options: GeneratorOptions) {
   if (config.withShield) {
     generateShieldImport(createRouter, shieldOutputPath);
   }
-  generateBaseRouter(createRouter, config);
+
+  generateBaseRouter(createRouter, config, options);
 
   createRouter.formatText({
     indentSize: 2,
@@ -97,11 +98,11 @@ export async function generate(options: GeneratorOptions) {
     { overwrite: true },
   );
 
-  generateCreateRouterImport(appRouter, config.withMiddleware);
-  appRouter.addStatements(/* ts */ `
-  export const appRouter = ${
-    config.withMiddleware ? 'createProtectedRouter' : 'createRouter'
-  }()`);
+  generateCreateRouterImport({
+    sourceFile: appRouter,
+  });
+
+  const routerStatements = [];
 
   for (const modelOperation of modelOperations) {
     const { model, ...operations } = modelOperation;
@@ -115,7 +116,12 @@ export async function generate(options: GeneratorOptions) {
       { overwrite: true },
     );
 
-    generateCreateRouterImport(modelRouter, false);
+
+    generateCreateRouterImport({
+      sourceFile: modelRouter,
+      config,
+    });
+
     generateRouterSchemaImports(
       modelRouter,
       model,
@@ -124,7 +130,7 @@ export async function generate(options: GeneratorOptions) {
     );
 
     modelRouter.addStatements(/* ts */ `
-      export const ${plural}Router = createRouter()`);
+      export const ${plural}Router = t.router({`);
     for (const [opType, opNameWithModel] of Object.entries(operations)) {
       const baseOpType = opType.replace('OrThrow', '');
 
@@ -135,12 +141,21 @@ export async function generate(options: GeneratorOptions) {
         model,
         opType,
         baseOpType,
+        config,
       );
     }
+
+    modelRouter.addStatements(/* ts */ `
+    })`);
+
     modelRouter.formatText({ indentSize: 2 });
-    appRouter.addStatements(/* ts */ `
-      .merge('${model.toLowerCase()}.', ${plural}Router)`);
+    routerStatements.push(/* ts */ `
+      ${model.toLowerCase()}: ${plural}Router`);
   }
+
+  appRouter.addStatements(/* ts */ `
+    export const appRouter = t.router({${routerStatements}})
+    `);
 
   appRouter.formatText({ indentSize: 2 });
   await project.save();

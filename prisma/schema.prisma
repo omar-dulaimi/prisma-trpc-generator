@@ -6,6 +6,10 @@ generator trpc {
   provider          = "node ./lib/generator.js"
   isGenerateSelect  = true
   isGenerateInclude = true
+  withMiddleware = true
+  withShield     = true
+  contextPath    = "./context"
+  trpcOptionsPath = "./trpcOptions"
 }
 
 datasource db {

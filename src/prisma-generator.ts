@@ -31,23 +31,8 @@ export async function generate(options: GeneratorOptions) {
 
   await PrismaZodGenerator(options);
 
-  let shieldOutputPath: string;
   if (config.withShield) {
-    const outputPath = options.generator.output.value;
-    shieldOutputPath = (
-      outputPath
-        .split(path.sep)
-        .slice(0, outputPath.split(path.sep).length - 1)
-        .join(path.sep) + '/shield'
-    )
-      .split(path.sep)
-      .join(path.posix.sep);
-
-    shieldOutputPath = path.relative(
-      path.join(outputPath, 'routers', 'helpers'),
-      shieldOutputPath,
-    );
-
+    const shieldOutputPath = path.join(outputDir, './shield');
     await PrismaTrpcShieldGenerator({
       ...options,
       generator: {
@@ -55,6 +40,10 @@ export async function generate(options: GeneratorOptions) {
         output: {
           ...options.generator.output,
           value: shieldOutputPath,
+        },
+        config: {
+          ...options.generator.config,
+          contextPath: config.contextPath,
         },
       },
     });
@@ -83,7 +72,7 @@ export async function generate(options: GeneratorOptions) {
 
   generatetRPCImport(createRouter);
   if (config.withShield) {
-    generateShieldImport(createRouter, shieldOutputPath);
+    generateShieldImport(createRouter, options);
   }
 
   generateBaseRouter(createRouter, config, options);
@@ -115,7 +104,6 @@ export async function generate(options: GeneratorOptions) {
       undefined,
       { overwrite: true },
     );
-
 
     generateCreateRouterImport({
       sourceFile: modelRouter,

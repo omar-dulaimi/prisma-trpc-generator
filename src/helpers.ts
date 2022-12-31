@@ -41,10 +41,11 @@ export const generatetRPCImport = (sourceFile: SourceFile) => {
 
 export const generateShieldImport = (
   sourceFile: SourceFile,
-  shieldOutputPath: string,
+  options: GeneratorOptions,
 ) => {
+  const outputDir = parseEnvValue(options.generator.output as EnvValue);
   sourceFile.addImportDeclaration({
-    moduleSpecifier: `${shieldOutputPath}/shield`,
+    moduleSpecifier: getRelativePath(outputDir, 'shield/shield'),
     namedImports: ['permissions'],
   });
 };
@@ -70,6 +71,7 @@ export function generateBaseRouter(
   import { Context } from '${getRelativePath(
     outputDir,
     config.contextPath,
+    true,
     options.schemaPath,
   )}';
   `);
@@ -79,6 +81,7 @@ export function generateBaseRouter(
     import trpcOptions from '${getRelativePath(
       outputDir,
       config.trpcOptionsPath,
+      true,
       options.schemaPath,
     )}';
     `);

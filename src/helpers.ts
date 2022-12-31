@@ -67,7 +67,11 @@ export function generateBaseRouter(
 ) {
   const outputDir = parseEnvValue(options.generator.output as EnvValue);
   sourceFile.addStatements(/* ts */ `
-  import { Context } from '${getRelativePath(outputDir, config.contextPath, options.schemaPath)}';
+  import { Context } from '${getRelativePath(
+    outputDir,
+    config.contextPath,
+    options.schemaPath,
+  )}';
   `);
 
   if (config.trpcOptionsPath) {
@@ -75,7 +79,7 @@ export function generateBaseRouter(
     import trpcOptions from '${getRelativePath(
       outputDir,
       config.trpcOptionsPath,
-      options.schemaPath
+      options.schemaPath,
     )}';
     `);
   }
@@ -143,14 +147,20 @@ export function generateProcedure(
   baseOpType: string,
   config: Config,
 ) {
+  let input = 'input';
+  const nameWithoutModel = name.replace(modelName as string, '');
+  if (nameWithoutModel === 'groupBy') {
+    input =
+      '{ where: input.where, orderBy: input.orderBy, by: input.by, having: input.having, take: input.take, skip: input.skip }';
+  }
   sourceFile.addStatements(/* ts */ `${name}: ${getProcedureName(config)}
-    .input(${typeName})
-    .${getProcedureTypeByOpName(baseOpType)}(async ({ ctx, input }) => {
-      const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
+  .input(${typeName})
+  .${getProcedureTypeByOpName(baseOpType)}(async ({ ctx, input }) => {
+    const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
     modelName,
-  )}.${opType.replace('One', '')}(input);
-      return ${name};
-    }),`);
+  )}.${opType.replace('One', '')}(${input});
+    return ${name};
+  }),`);
 }
 
 export function generateRouterSchemaImports(

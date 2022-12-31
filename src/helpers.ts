@@ -148,11 +148,7 @@ export function generateProcedure(
   config: Config,
 ) {
   let input = 'input';
-  console.log({name})
-  console.log({modelName})
   const nameWithoutModel = name.replace(modelName as string, '');
-  console.log({nameWithoutModel})
-  console.log(";-----------;")
   if (nameWithoutModel === 'groupBy') {
     input =
       '{ where: input.where, orderBy: input.orderBy, by: input.by, having: input.having, take: input.take, skip: input.skip }';

@@ -31,7 +31,7 @@
     "@prisma/internals": "^4.8.0",
     "pluralize": "^8.0.0",
     "prisma-trpc-shield-generator": "0.1.0",
-    "prisma-zod-generator": "^0.8.9",
+    "prisma-zod-generator": "^0.8.10",
     "ts-morph": "^17.0.1",
     "tslib": "^2.4.1"
   },

@@ -6,7 +6,7 @@ import getRelativePath from './utils/getRelativePath';
 import { uncapitalizeFirstLetter } from './utils/uncapitalizeFirstLetter';
 
 const getProcedureName = (config: Config) => {
-  return config.withShield
+  return config.withShield || config.shieldPath
     ? 'shieldedProcedure'
     : config.withMiddleware
     ? 'protectedProcedure'
@@ -42,10 +42,15 @@ export const generatetRPCImport = (sourceFile: SourceFile) => {
 export const generateShieldImport = (
   sourceFile: SourceFile,
   options: GeneratorOptions,
+  config: Config,
 ) => {
   const outputDir = parseEnvValue(options.generator.output as EnvValue);
+  const shieldPath = config.shieldPath
+    ? getRelativePath(outputDir, config.shieldPath, true, options.schemaPath)
+    : getRelativePath(outputDir, 'shield/shield');
+
   sourceFile.addImportDeclaration({
-    moduleSpecifier: getRelativePath(outputDir, 'shield/shield'),
+    moduleSpecifier: shieldPath,
     namedImports: ['permissions'],
   });
 };
@@ -107,7 +112,7 @@ export function generateBaseRouter(
     });
   }
 
-  if (config.withShield) {
+  if (config.withShield || config.shieldPath) {
     sourceFile.addStatements(/* ts */ `
     export const permissionsMiddleware = t.middleware(permissions);`);
     middlewares.push({

@@ -90,6 +90,7 @@ generator trpc {
   provider       = "prisma-trpc-generator"
   withMiddleware = false
   withShield     = false
+  shieldPath     = "../src/shield"
   contextPath       = "../src/context"
   trpcOptionsPath   = "../src/trpcOptions"
 }
@@ -176,6 +177,7 @@ model User {
 | `output`            | Output directory for the generated routers and zod schemas                 | `string`  | `./generated`                 |
 | `withMiddleware`    | Attaches a global middleware that runs before all procedures               | `boolean` | `true`                        |
 | `withShield`        | Generates a tRPC Shield to use as a permissions layer                      | `boolean` | `true`                        |
+| `shieldPath`        | Uses your existing tRPC Shield as a permissions layer                      | `string`  |                               |
 | `contextPath`       | Sets the context path used in your routers                                 | `string`  | `../../../../src/context`     |
 | `trpcOptionsPath`   | Sets the tRPC instance options                                             | `string`  | `../../../../src/trpcOptions` |
 | `isGenerateSelect`  | Enables the generation of Select related schemas and the select property   | `boolean` | `false`                       |
@@ -189,6 +191,7 @@ generator trpc {
   output             = "./trpc"
   withMiddleware     = false
   withShield         = false
+  shieldPath        = "../shield"
   contextPath        = "../context"
   trpcOptionsPath        = "../trpcOptions"
   isGenerateSelect   = true

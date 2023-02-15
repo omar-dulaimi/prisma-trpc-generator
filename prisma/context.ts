@@ -5,6 +5,7 @@ export const createContext = async ({ req, res }) => {
   const prisma = new PrismaClient();
   return {
     prisma,
+    user: null,
   };
 };
 

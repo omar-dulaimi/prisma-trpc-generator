@@ -31,7 +31,7 @@ export async function generate(options: GeneratorOptions) {
 
   await PrismaZodGenerator(options);
 
-  if (config.withShield && !config.shieldPath) {
+  if (config.withShield) {
     const shieldOutputPath = path.join(outputDir, './shield');
     await PrismaTrpcShieldGenerator({
       ...options,

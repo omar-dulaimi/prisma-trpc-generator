@@ -1,4 +1,4 @@
-import { EnvValue, GeneratorOptions } from '@prisma/generator-helper';
+import { DMMF, EnvValue, GeneratorOptions } from '@prisma/generator-helper';
 import { getDMMF, parseEnvValue } from '@prisma/internals';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -15,7 +15,7 @@ import {
   generateShieldImport,
   generatetRPCImport,
   getInputTypeByOpName,
-  resolveModelsComments
+  resolveModelsComments,
 } from './helpers';
 import { project } from './project';
 import removeDir from './utils/removeDir';
@@ -52,8 +52,6 @@ export async function generate(options: GeneratorOptions) {
   const prismaClientProvider = options.otherGenerators.find(
     (it) => parseEnvValue(it.provider) === 'prisma-client-js',
   );
-
-  const dataSource = options.datasources?.[0];
 
   const prismaClientDmmf = await getDMMF({
     datamodel: options.datamodel,
@@ -96,8 +94,17 @@ export async function generate(options: GeneratorOptions) {
   for (const modelOperation of modelOperations) {
     const { model, ...operations } = modelOperation;
     if (hiddenModels.includes(model)) continue;
+
+    const modelActions = Object.keys(operations).filter<DMMF.ModelAction>(
+      (opType): opType is DMMF.ModelAction =>
+        config.generateModelActions.includes(
+          opType.replace('One', '') as DMMF.ModelAction,
+        ),
+    );
+    if (!modelActions.length) continue;
+
     const plural = pluralize(model.toLowerCase());
-    const hasCreateMany = Boolean(operations.createMany);
+
     generateRouterImport(appRouter, plural, model);
     const modelRouter = project.createSourceFile(
       path.resolve(outputDir, 'routers', `${model}.router.ts`),
@@ -110,16 +117,13 @@ export async function generate(options: GeneratorOptions) {
       config,
     });
 
-    generateRouterSchemaImports(
-      modelRouter,
-      model,
-      hasCreateMany,
-      dataSource.provider,
-    );
+    generateRouterSchemaImports(modelRouter, model, modelActions);
 
     modelRouter.addStatements(/* ts */ `
       export const ${plural}Router = t.router({`);
-    for (const [opType, opNameWithModel] of Object.entries(operations)) {
+
+    for (const opType of modelActions) {
+      const opNameWithModel = operations[opType];
       const baseOpType = opType.replace('OrThrow', '');
 
       generateProcedure(

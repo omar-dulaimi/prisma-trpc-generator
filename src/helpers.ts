@@ -168,42 +168,33 @@ export function generateProcedure(
 
 export function generateRouterSchemaImports(
   sourceFile: SourceFile,
-  name: string,
-  hasCreateMany: boolean,
-  provider: string,
+  modelName: string,
+  modelActions: string[],
 ) {
-  let statements = [
-    `import { ${name}FindUniqueSchema } from "../schemas/findUnique${name}.schema";`,
-    `import { ${name}FindFirstSchema } from "../schemas/findFirst${name}.schema";`,
-    `import { ${name}FindManySchema } from "../schemas/findMany${name}.schema";`,
-    `import { ${name}CreateOneSchema } from "../schemas/createOne${name}.schema";`,
-  ];
-
-  if (hasCreateMany) {
-    statements.push(
-      `import { ${name}CreateManySchema } from "../schemas/createMany${name}.schema";`,
-    );
-  }
-
-  statements = statements.concat([
-    `import { ${name}DeleteOneSchema } from "../schemas/deleteOne${name}.schema";`,
-    `import { ${name}UpdateOneSchema } from "../schemas/updateOne${name}.schema";`,
-    `import { ${name}DeleteManySchema } from "../schemas/deleteMany${name}.schema";`,
-    `import { ${name}UpdateManySchema } from "../schemas/updateMany${name}.schema";`,
-    `import { ${name}UpsertSchema } from "../schemas/upsertOne${name}.schema";`,
-    `import { ${name}AggregateSchema } from "../schemas/aggregate${name}.schema";`,
-    `import { ${name}GroupBySchema } from "../schemas/groupBy${name}.schema";`,
-  ]);
-
-  if (provider === 'mongodb') {
-    statements = statements.concat([
-      `import { ${name}FindRawObjectSchema } from "../schemas/objects/${name}FindRaw.schema";`,
-      `import { ${name}AggregateRawObjectSchema } from "../schemas/objects/${name}AggregateRaw.schema";`,
-    ]);
-  }
-
-  sourceFile.addStatements(/* ts */ statements.join('\n'));
+  sourceFile.addStatements(
+    /* ts */
+    [
+      // remove any duplicate import statements
+      ...new Set(
+        modelActions.map((opName) =>
+          getRouterSchemaImportByOpName(opName, modelName),
+        ),
+      ),
+    ].join('\n'),
+  );
 }
+
+export const getRouterSchemaImportByOpName = (
+  opName: string,
+  modelName: string,
+) => {
+  const opType = opName.replace('OrThrow', '');
+  const inputType = getInputTypeByOpName(opType, modelName);
+
+  return inputType
+    ? `import { ${inputType} } from "../schemas/${opType}${modelName}.schema";`
+    : '';
+};
 
 export const getInputTypeByOpName = (opName: string, modelName: string) => {
   let inputType;

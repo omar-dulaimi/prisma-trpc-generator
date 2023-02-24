@@ -8,7 +8,8 @@ export const configSchema = z.object({
   withMiddleware: configBoolean.default('true'),
   withShield: configBoolean.default('true'),
   contextPath: z.string().default('../../../../src/context'),
-  trpcOptionsPath: z.string().optional()
+  trpcOptionsPath: z.string().optional(),
+  showModelNameInProcedure: configBoolean.default('true')
 });
 
 export type Config = z.infer<typeof configSchema>;

@@ -12,6 +12,7 @@ export const configSchema = z.object({
   withShield: configBoolean.default('true'),
   contextPath: z.string().default('../../../../src/context'),
   trpcOptionsPath: z.string().optional(),
+  showModelNameInProcedure: configBoolean.default('true'),
   generateModelActions: z
     .string()
     .default(Object.values(DMMF.ModelAction).join(','))
@@ -19,7 +20,7 @@ export const configSchema = z.object({
       return arg
         .split(',')
         .map((action) => modelActionEnum.parse(action.trim()));
-    }),
+    })
 });
 
 export type Config = z.infer<typeof configSchema>;

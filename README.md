@@ -171,16 +171,18 @@ model User {
 
 # Additional Options
 
-| Option                 | Description                                                                | Type      | Default                                                                                                                                                                      |
-| ---------------------- | -------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `output`               | Output directory for the generated routers and zod schemas                 | `string`  | `./generated`                                                                                                                                                                |
-| `withMiddleware`       | Attaches a global middleware that runs before all procedures               | `boolean` | `true`                                                                                                                                                                       |
-| `withShield`           | Generates a tRPC Shield to use as a permissions layer                      | `boolean` | `true`                                                                                                                                                                       |
-| `contextPath`          | Sets the context path used in your routers                                 | `string`  | `../../../../src/context`                                                                                                                                                    |
-| `trpcOptionsPath`      | Sets the tRPC instance options                                             | `string`  | `../../../../src/trpcOptions`                                                                                                                                                |
-| `isGenerateSelect`     | Enables the generation of Select related schemas and the select property   | `boolean` | `false`                                                                                                                                                                      |
-| `isGenerateInclude`    | Enables the generation of Include related schemas and the include property | `boolean` | `false`                                                                                                                                                                      |
-| `generateModelActions` | Enables the generation of specific model actions                           | `string`  | `aggregate,aggregateRaw,count,create,createMany,delete,deleteMany,findFirst,findFirstOrThrow,findMany,findRaw,findUnique,findUniqueOrThrow,groupBy,update,updateMany,upsert` |
+| Option                     | Description                                                                            | Type      | Default                                                                                                                                                                      |
+| -------------------------- | -------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `output`                   | Output directory for the generated routers and zod schemas                             | `string`  | `./generated`                                                                                                                                                                |
+| `withMiddleware`           | Attaches a global middleware that runs before all procedures                           | `boolean` | `true`                                                                                                                                                                       |
+| `withShield`               | Generates a tRPC Shield to use as a permissions layer                                  | `boolean` | `true`                                                                                                                                                                       |
+| `contextPath`              | Sets the context path used in your routers                                             | `string`  | `../../../../src/context`                                                                                                                                                    |
+| `trpcOptionsPath`          | Sets the tRPC instance options                                                         | `string`  | `../../../../src/trpcOptions`                                                                                                                                                |
+| `isGenerateSelect`         | Enables the generation of Select related schemas and the select property               | `boolean` | `false`                                                                                                                                                                      |
+| `isGenerateInclude`        | Enables the generation of Include related schemas and the include property             | `boolean` | `false`                                                                                                                                                                      |
+| `showModelNameInProcedure` | When disabled, the generated procedure no longer includes the name of the Prisma model | `boolean` | `true`                                                                                                                                                                       |
+| `generateModelActions`     | Enables the generation of specific model actions                                       | `string`  | `aggregate,aggregateRaw,count,create,createMany,delete,deleteMany,findFirst,findFirstOrThrow,findMany,findRaw,findUnique,findUniqueOrThrow,groupBy,update,updateMany,upsert` |
+
 
 Use additional options in the `schema.prisma`
 
@@ -191,9 +193,10 @@ generator trpc {
   withMiddleware     = false
   withShield         = false
   contextPath        = "../context"
-  trpcOptionsPath        = "../trpcOptions"
+  trpcOptionsPath    = "../trpcOptions"
   isGenerateSelect   = true
   isGenerateInclude  = true
+  showModelNameInProcedure  = false
   generateModelActions = "aggregate,aggregateRaw,count,create,createMany,delete,deleteMany,findFirst,findFirstOrThrow,findMany,findRaw,findUnique,findUniqueOrThrow,groupBy,update,updateMany,upsert"
 }
 ```

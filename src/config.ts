@@ -10,6 +10,7 @@ const modelActionEnum = z.nativeEnum(DMMF.ModelAction);
 export const configSchema = z.object({
   withMiddleware: configBoolean.default('true'),
   withShield: configBoolean.default('true'),
+  withZod: configBoolean.default('true'),
   contextPath: z.string().default('../../../../src/context'),
   trpcOptionsPath: z.string().optional(),
   showModelNameInProcedure: configBoolean.default('true'),

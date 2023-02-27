@@ -29,7 +29,9 @@ export async function generate(options: GeneratorOptions) {
   await fs.mkdir(outputDir, { recursive: true });
   await removeDir(outputDir, true);
 
-  await PrismaZodGenerator(options);
+  if (config.withZod) {
+    await PrismaZodGenerator(options);
+  }
 
   if (config.withShield) {
     const shieldOutputPath = path.join(outputDir, './shield');

@@ -1,7 +1,6 @@
 import { DMMF, EnvValue, GeneratorOptions } from '@prisma/generator-helper';
 import { parseEnvValue } from '@prisma/internals';
 import { SourceFile } from 'ts-morph';
-import { z } from 'zod';
 import { Config } from './config';
 import getRelativePath from './utils/getRelativePath';
 import { uncapitalizeFirstLetter } from './utils/uncapitalizeFirstLetter';

@@ -30,11 +30,11 @@
 
 - [About The Project](#about-the-project)
 - [Supported Prisma Versions](#supported-prisma-versions)
-    - [Prisma 4](#prisma-4)
-    - [Prisma 2/3](#prisma-23)
+  - [Prisma 4](#prisma-4)
+  - [Prisma 2/3](#prisma-23)
 - [Supported tRPC Versions](#supported-trpc-versions)
-    - [tRPC 10](#trpc-10)
-    - [tRPC 9](#trpc-9)
+  - [tRPC 10](#trpc-10)
+  - [tRPC 9](#trpc-9)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Customizations](#customizations)
@@ -172,9 +172,9 @@ model User {
 # Additional Options
 
 | Option                     | Description                                                                            | Type      | Default                                                                                                                                                                      |
-| -------------------------- | -------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| -------------------------- | -------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | `output`                   | Output directory for the generated routers and zod schemas                             | `string`  | `./generated`                                                                                                                                                                |
-| `withMiddleware`           | Attaches a global middleware that runs before all procedures                           | `boolean` | `true`                                                                                                                                                                       |
+| `withMiddleware`           | Attaches a global middleware that runs before all procedures                           | `boolean  | string`                                                                                                                                                                      | `true` |
 | `withShield`               | Generates a tRPC Shield to use as a permissions layer                                  | `boolean` | `true`                                                                                                                                                                       |
 | `contextPath`              | Sets the context path used in your routers                                             | `string`  | `../../../../src/context`                                                                                                                                                    |
 | `trpcOptionsPath`          | Sets the tRPC instance options                                                         | `string`  | `../../../../src/trpcOptions`                                                                                                                                                |
@@ -183,14 +183,13 @@ model User {
 | `showModelNameInProcedure` | When disabled, the generated procedure no longer includes the name of the Prisma model | `boolean` | `true`                                                                                                                                                                       |
 | `generateModelActions`     | Enables the generation of specific model actions                                       | `string`  | `aggregate,aggregateRaw,count,create,createMany,delete,deleteMany,findFirst,findFirstOrThrow,findMany,findRaw,findUnique,findUniqueOrThrow,groupBy,update,updateMany,upsert` |
 
-
 Use additional options in the `schema.prisma`
 
 ```prisma
 generator trpc {
   provider           = "prisma-trpc-generator"
   output             = "./trpc"
-  withMiddleware     = false
+  withMiddleware     = "../middleware"
   withShield         = false
   contextPath        = "../context"
   trpcOptionsPath    = "../trpcOptions"

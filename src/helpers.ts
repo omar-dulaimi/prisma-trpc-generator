@@ -1,6 +1,7 @@
 import { DMMF, EnvValue, GeneratorOptions } from '@prisma/generator-helper';
 import { parseEnvValue } from '@prisma/internals';
 import { SourceFile } from 'ts-morph';
+import { z } from 'zod';
 import { Config } from './config';
 import getRelativePath from './utils/getRelativePath';
 import { uncapitalizeFirstLetter } from './utils/uncapitalizeFirstLetter';
@@ -9,8 +10,8 @@ const getProcedureName = (config: Config) => {
   return config.withShield
     ? 'shieldedProcedure'
     : config.withMiddleware
-    ? 'protectedProcedure'
-    : 'publicProcedure';
+      ? 'protectedProcedure'
+      : 'publicProcedure';
 };
 
 export const generateCreateRouterImport = ({
@@ -46,6 +47,17 @@ export const generateShieldImport = (
   const outputDir = parseEnvValue(options.generator.output as EnvValue);
   sourceFile.addImportDeclaration({
     moduleSpecifier: getRelativePath(outputDir, 'shield/shield'),
+    namedImports: ['permissions'],
+  });
+};
+
+export const generateMiddlewareImport = (
+  sourceFile: SourceFile,
+  options: GeneratorOptions,
+) => {
+  const outputDir = parseEnvValue(options.generator.output as EnvValue);
+  sourceFile.addImportDeclaration({
+    moduleSpecifier: getRelativePath(outputDir, 'middleware'),
     namedImports: ['permissions'],
   });
 };
@@ -88,14 +100,13 @@ export function generateBaseRouter(
   }
 
   sourceFile.addStatements(/* ts */ `
-  export const t = trpc.initTRPC.context<Context>().create(${
-    config.trpcOptionsPath ? 'trpcOptions' : ''
-  });
+  export const t = trpc.initTRPC.context<Context>().create(${config.trpcOptionsPath ? 'trpcOptions' : ''
+    });
   `);
 
   const middlewares = [];
 
-  if (config.withMiddleware) {
+  if (config.withMiddleware && typeof config.withMiddleware === "boolean") {
     sourceFile.addStatements(/* ts */ `
     export const globalMiddleware = t.middleware(async ({ ctx, next }) => {
       console.log('inside middleware!')
@@ -107,18 +118,36 @@ export function generateBaseRouter(
     });
   }
 
+  if (config.withMiddleware && typeof config.withMiddleware === "string") {
+    sourceFile.addStatements(/* ts */ `
+  import defaultMiddleware from '${getRelativePath(
+      outputDir,
+      config.withMiddleware,
+      true,
+      options.schemaPath,
+    )}';
+  `);
+    sourceFile.addStatements(/* ts */ `
+    export const globalMiddleware = t.middleware(defaultMiddleware);`
+    );
+    middlewares.push({
+      type: 'global',
+      value: /* ts */ `.use(globalMiddleware)`,
+    });
+  }
+
   if (config.withShield) {
     sourceFile.addStatements(/* ts */ `
-    export const permissionsMiddleware = t.middleware(permissions);`);
+    export const permissionsMiddleware = t.middleware(permissions); `);
     middlewares.push({
       type: 'shield',
       value: /* ts */ `
-    .use(permissions)`,
+      .use(permissions)`,
     });
   }
 
   sourceFile.addStatements(/* ts */ `
-  export const publicProcedure = t.procedure;`);
+    export const publicProcedure = t.procedure; `);
 
   if (middlewares.length > 0) {
     const procName = getProcedureName(config);
@@ -126,17 +155,16 @@ export function generateBaseRouter(
     middlewares.forEach((middleware, i) => {
       if (i === 0) {
         sourceFile.addStatements(/* ts */ `
-        export const ${procName} = t.procedure
-        `);
+    export const ${procName} = t.procedure
+      `);
       }
 
       sourceFile.addStatements(/* ts */ `
-        .use(${
-          middleware.type === 'shield'
-            ? 'permissionsMiddleware'
-            : 'globalMiddleware'
+      .use(${middleware.type === 'shield'
+          ? 'permissionsMiddleware'
+          : 'globalMiddleware'
         })
-        `);
+      `);
     });
   }
 }
@@ -156,14 +184,16 @@ export function generateProcedure(
     input =
       '{ where: input.where, orderBy: input.orderBy, by: input.by, having: input.having, take: input.take, skip: input.skip }';
   }
-  sourceFile.addStatements(/* ts */ `${config.showModelNameInProcedure ? name :  nameWithoutModel}: ${getProcedureName(config)}
+  sourceFile.addStatements(/* ts */ `${config.showModelNameInProcedure ? name : nameWithoutModel}: ${getProcedureName(config)
+    }
   .input(${typeName})
-  .${getProcedureTypeByOpName(baseOpType)}(async ({ ctx, input }) => {
-    const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
-    modelName,
-  )}.${opType.replace('One', '')}(${input});
-    return ${name};
-  }),`);
+    .${getProcedureTypeByOpName(baseOpType)} (async ({ ctx, input }) => {
+      const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
+      modelName,
+    )
+    }.${opType.replace('One', '')} (${input});
+  return ${name};
+}), `);
 }
 
 export function generateRouterSchemaImports(
@@ -192,7 +222,7 @@ export const getRouterSchemaImportByOpName = (
   const inputType = getInputTypeByOpName(opType, modelName);
 
   return inputType
-    ? `import { ${inputType} } from "../schemas/${opType}${modelName}.schema";`
+    ? `import { ${inputType} } from "../schemas/${opType}${modelName}.schema"; `
     : '';
 };
 
@@ -200,46 +230,46 @@ export const getInputTypeByOpName = (opName: string, modelName: string) => {
   let inputType;
   switch (opName) {
     case 'findUnique':
-      inputType = `${modelName}FindUniqueSchema`;
+      inputType = `${modelName} FindUniqueSchema`;
       break;
     case 'findFirst':
-      inputType = `${modelName}FindFirstSchema`;
+      inputType = `${modelName} FindFirstSchema`;
       break;
     case 'findMany':
-      inputType = `${modelName}FindManySchema`;
+      inputType = `${modelName} FindManySchema`;
       break;
     case 'findRaw':
-      inputType = `${modelName}FindRawObjectSchema`;
+      inputType = `${modelName} FindRawObjectSchema`;
       break;
     case 'createOne':
-      inputType = `${modelName}CreateOneSchema`;
+      inputType = `${modelName} CreateOneSchema`;
       break;
     case 'createMany':
-      inputType = `${modelName}CreateManySchema`;
+      inputType = `${modelName} CreateManySchema`;
       break;
     case 'deleteOne':
-      inputType = `${modelName}DeleteOneSchema`;
+      inputType = `${modelName} DeleteOneSchema`;
       break;
     case 'updateOne':
-      inputType = `${modelName}UpdateOneSchema`;
+      inputType = `${modelName} UpdateOneSchema`;
       break;
     case 'deleteMany':
-      inputType = `${modelName}DeleteManySchema`;
+      inputType = `${modelName} DeleteManySchema`;
       break;
     case 'updateMany':
-      inputType = `${modelName}UpdateManySchema`;
+      inputType = `${modelName} UpdateManySchema`;
       break;
     case 'upsertOne':
-      inputType = `${modelName}UpsertSchema`;
+      inputType = `${modelName} UpsertSchema`;
       break;
     case 'aggregate':
-      inputType = `${modelName}AggregateSchema`;
+      inputType = `${modelName} AggregateSchema`;
       break;
     case 'aggregateRaw':
-      inputType = `${modelName}AggregateRawObjectSchema`;
+      inputType = `${modelName} AggregateRawObjectSchema`;
       break;
     case 'groupBy':
-      inputType = `${modelName}GroupBySchema`;
+      inputType = `${modelName} GroupBySchema`;
       break;
     default:
       console.log('getInputTypeByOpName: ', { opName, modelName });

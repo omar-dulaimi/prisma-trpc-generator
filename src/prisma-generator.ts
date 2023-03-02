@@ -15,7 +15,7 @@ import {
   generateShieldImport,
   generatetRPCImport,
   getInputTypeByOpName,
-  resolveModelsComments,
+  resolveModelsComments
 } from './helpers';
 import { project } from './project';
 import removeDir from './utils/removeDir';
@@ -119,7 +119,9 @@ export async function generate(options: GeneratorOptions) {
       config,
     });
 
-    generateRouterSchemaImports(modelRouter, model, modelActions);
+    if (config.withZod) {
+      generateRouterSchemaImports(modelRouter, model, modelActions);
+    }
 
     modelRouter.addStatements(/* ts */ `
       export const ${plural}Router = t.router({`);

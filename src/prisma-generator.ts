@@ -15,7 +15,7 @@ import {
   generateShieldImport,
   generatetRPCImport,
   getInputTypeByOpName,
-  resolveModelsComments,
+  resolveModelsComments
 } from './helpers';
 import { project } from './project';
 import removeDir from './utils/removeDir';
@@ -29,7 +29,9 @@ export async function generate(options: GeneratorOptions) {
   await fs.mkdir(outputDir, { recursive: true });
   await removeDir(outputDir, true);
 
-  await PrismaZodGenerator(options);
+  if (config.withZod) {
+    await PrismaZodGenerator(options);
+  }
 
   if (config.withShield) {
     const shieldOutputPath = path.join(outputDir, './shield');
@@ -117,7 +119,9 @@ export async function generate(options: GeneratorOptions) {
       config,
     });
 
-    generateRouterSchemaImports(modelRouter, model, modelActions);
+    if (config.withZod) {
+      generateRouterSchemaImports(modelRouter, model, modelActions);
+    }
 
     modelRouter.addStatements(/* ts */ `
       export const ${plural}Router = t.router({`);

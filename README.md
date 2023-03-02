@@ -87,9 +87,10 @@ Using yarn:
 
 ```prisma
 generator trpc {
-  provider       = "prisma-trpc-generator"
-  withMiddleware = false
-  withShield     = false
+  provider          = "prisma-trpc-generator"
+  withZod           = true
+  withMiddleware    = false
+  withShield        = false
   contextPath       = "../src/context"
   trpcOptionsPath   = "../src/trpcOptions"
 }
@@ -173,7 +174,8 @@ model User {
 
 | Option                     | Description                                                                            | Type      | Default                                                                                                                                                                      |
 | -------------------------- | -------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `output`                   | Output directory for the generated routers and zod schemas                             | `string`  | `./generated`                                                                                                                                                                |
+| `output`                   | Output directory for the generated routers and zod schemas                             | `string`  | `./generated`                            
+| `withZod`                   |  Use Zod for input validation                             | `boolean`  | `true`                            |
 | `withMiddleware`           | Attaches a global middleware that runs before all procedures                           | `boolean` | `true`                                                                                                                                                                       |
 | `withShield`               | Generates a tRPC Shield to use as a permissions layer                                  | `boolean` | `true`                                                                                                                                                                       |
 | `contextPath`              | Sets the context path used in your routers                                             | `string`  | `../../../../src/context`                                                                                                                                                    |
@@ -190,6 +192,7 @@ Use additional options in the `schema.prisma`
 generator trpc {
   provider           = "prisma-trpc-generator"
   output             = "./trpc"
+  withZod            = false 
   withMiddleware     = false
   withShield         = false
   contextPath        = "../context"

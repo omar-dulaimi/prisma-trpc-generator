@@ -87,9 +87,10 @@ Using yarn:
 
 ```prisma
 generator trpc {
-  provider       = "prisma-trpc-generator"
-  withMiddleware = false
-  withShield     = false
+  provider          = "prisma-trpc-generator"
+  withZod           = true
+  withMiddleware    = false
+  withShield        = false
   contextPath       = "../src/context"
   trpcOptionsPath   = "../src/trpcOptions"
 }
@@ -172,9 +173,11 @@ model User {
 # Additional Options
 
 | Option                     | Description                                                                            | Type      | Default                                                                                                                                                                      |
-| -------------------------- | -------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| -------------------------- | -------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `output`                   | Output directory for the generated routers and zod schemas                             | `string`  | `./generated`                                                                                                                                                                |
-| `withMiddleware`           | Attaches a global middleware that runs before all procedures                           | `boolean  | string`                                                                                                                                                                      | `true` |
+| `withMiddleware`           | Attaches a global middleware that runs before all procedures                           | `boolean or string`| `true`                                                                                                                                                              |
+| `output`                   | Output directory for the generated routers and zod schemas                             | `string`  | `./generated`                                                                                                                                                                |
+| `withZod`                  |  Use Zod for input validation                                                          | `boolean` | `true`                                                                                                                                                                       |
 | `withShield`               | Generates a tRPC Shield to use as a permissions layer                                  | `boolean` | `true`                                                                                                                                                                       |
 | `contextPath`              | Sets the context path used in your routers                                             | `string`  | `../../../../src/context`                                                                                                                                                    |
 | `trpcOptionsPath`          | Sets the tRPC instance options                                                         | `string`  | `../../../../src/trpcOptions`                                                                                                                                                |
@@ -190,6 +193,7 @@ generator trpc {
   provider           = "prisma-trpc-generator"
   output             = "./trpc"
   withMiddleware     = "../middleware"
+  withZod            = false 
   withShield         = false
   contextPath        = "../context"
   trpcOptionsPath    = "../trpcOptions"

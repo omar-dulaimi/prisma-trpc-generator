@@ -177,22 +177,21 @@ export function generateProcedure(
   baseOpType: string,
   config: Config,
 ) {
-  let input = 'input';
+  let input = `input${!config.withZod ? ' as any' : ''}`;
   const nameWithoutModel = name.replace(modelName as string, '');
-  if (nameWithoutModel === 'groupBy') {
+  if (nameWithoutModel === 'groupBy' && config.withZod) {
     input =
       '{ where: input.where, orderBy: input.orderBy, by: input.by, having: input.having, take: input.take, skip: input.skip }';
   }
-  sourceFile.addStatements(/* ts */ `${config.showModelNameInProcedure ? name : nameWithoutModel}: ${getProcedureName(config)
-    }
-  .input(${typeName})
-    .${getProcedureTypeByOpName(baseOpType)} (async ({ ctx, input }) => {
-      const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
-      modelName,
-    )
-    }.${opType.replace('One', '')} (${input});
-  return ${name};
-}), `);
+  sourceFile.addStatements(/* ts */ `${
+    config.showModelNameInProcedure ? name : nameWithoutModel
+  }: ${getProcedureName(config)}
+  ${config.withZod ? `.input(${typeName})` : ''}.${getProcedureTypeByOpName(baseOpType)}(async ({ ctx, input }) => {
+    const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
+    modelName,
+  )}.${opType.replace('One', '')}(${input});
+    return ${name};
+  }),`);
 }
 
 export function generateRouterSchemaImports(

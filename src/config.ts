@@ -5,10 +5,12 @@ const configBoolean = z
   .enum(['true', 'false'])
   .transform((arg) => JSON.parse(arg));
 
+const configStringOrBoolean = z.union([configBoolean, z.string().default("../../../../src/middleware")])
+
 const modelActionEnum = z.nativeEnum(DMMF.ModelAction);
 
 export const configSchema = z.object({
-  withMiddleware: configBoolean.default('true'),
+  withMiddleware: configStringOrBoolean.default('true'),
   withShield: configBoolean.default('true'),
   withZod: configBoolean.default('true'),
   contextPath: z.string().default('../../../../src/context'),

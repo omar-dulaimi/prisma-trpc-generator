@@ -228,46 +228,46 @@ export const getInputTypeByOpName = (opName: string, modelName: string) => {
   let inputType;
   switch (opName) {
     case 'findUnique':
-      inputType = `${modelName} FindUniqueSchema`;
+      inputType = `${modelName}FindUniqueSchema`;
       break;
     case 'findFirst':
-      inputType = `${modelName} FindFirstSchema`;
+      inputType = `${modelName}FindFirstSchema`;
       break;
     case 'findMany':
-      inputType = `${modelName} FindManySchema`;
+      inputType = `${modelName}FindManySchema`;
       break;
     case 'findRaw':
-      inputType = `${modelName} FindRawObjectSchema`;
+      inputType = `${modelName}FindRawObjectSchema`;
       break;
     case 'createOne':
-      inputType = `${modelName} CreateOneSchema`;
+      inputType = `${modelName}CreateOneSchema`;
       break;
     case 'createMany':
-      inputType = `${modelName} CreateManySchema`;
+      inputType = `${modelName}CreateManySchema`;
       break;
     case 'deleteOne':
-      inputType = `${modelName} DeleteOneSchema`;
+      inputType = `${modelName}DeleteOneSchema`;
       break;
     case 'updateOne':
-      inputType = `${modelName} UpdateOneSchema`;
+      inputType = `${modelName}UpdateOneSchema`;
       break;
     case 'deleteMany':
-      inputType = `${modelName} DeleteManySchema`;
+      inputType = `${modelName}DeleteManySchema`;
       break;
     case 'updateMany':
-      inputType = `${modelName} UpdateManySchema`;
+      inputType = `${modelName}UpdateManySchema`;
       break;
     case 'upsertOne':
-      inputType = `${modelName} UpsertSchema`;
+      inputType = `${modelName}UpsertSchema`;
       break;
     case 'aggregate':
-      inputType = `${modelName} AggregateSchema`;
+      inputType = `${modelName}AggregateSchema`;
       break;
     case 'aggregateRaw':
-      inputType = `${modelName} AggregateRawObjectSchema`;
+      inputType = `${modelName}AggregateRawObjectSchema`;
       break;
     case 'groupBy':
-      inputType = `${modelName} GroupBySchema`;
+      inputType = `${modelName}GroupBySchema`;
       break;
     default:
       console.log('getInputTypeByOpName: ', { opName, modelName });

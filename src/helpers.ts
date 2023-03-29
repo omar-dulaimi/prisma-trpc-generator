@@ -79,7 +79,7 @@ export function generateBaseRouter(
 ) {
   const outputDir = parseEnvValue(options.generator.output as EnvValue);
   sourceFile.addStatements(/* ts */ `
-  import { Context } from '${getRelativePath(
+  import type { Context } from '${getRelativePath(
     outputDir,
     config.contextPath,
     true,

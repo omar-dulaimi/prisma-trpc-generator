@@ -7,7 +7,7 @@ generator trpc {
   isGenerateSelect  = true
   isGenerateInclude = true
   withMiddleware    = "./middleware"
-  withShield        = true
+  withShield        = "./shield"
   contextPath       = "./context"
   trpcOptionsPath   = "./trpcOptions"
 }

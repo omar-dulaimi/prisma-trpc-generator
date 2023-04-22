@@ -5,13 +5,21 @@ const configBoolean = z
   .enum(['true', 'false'])
   .transform((arg) => JSON.parse(arg));
 
-const configStringOrBoolean = z.union([configBoolean, z.string().default("../../../../src/middleware")])
+const configMiddleware = z.union([
+  configBoolean,
+  z.string().default('../../../../src/middleware'),
+]);
+
+const configShield = z.union([
+  configBoolean,
+  z.string().default('../../../../src/shield'),
+]);
 
 const modelActionEnum = z.nativeEnum(DMMF.ModelAction);
 
 export const configSchema = z.object({
-  withMiddleware: configStringOrBoolean.default('true'),
-  withShield: configBoolean.default('true'),
+  withMiddleware: configMiddleware.default('true'),
+  withShield: configShield.default('true'),
   withZod: configBoolean.default('true'),
   contextPath: z.string().default('../../../../src/context'),
   trpcOptionsPath: z.string().optional(),
@@ -23,7 +31,7 @@ export const configSchema = z.object({
       return arg
         .split(',')
         .map((action) => modelActionEnum.parse(action.trim()));
-    })
+    }),
 });
 
 export type Config = z.infer<typeof configSchema>;

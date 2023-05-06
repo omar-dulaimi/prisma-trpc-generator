@@ -9,8 +9,8 @@ const getProcedureName = (config: Config) => {
   return config.withShield
     ? 'shieldedProcedure'
     : config.withMiddleware
-      ? 'protectedProcedure'
-      : 'publicProcedure';
+    ? 'protectedProcedure'
+    : 'publicProcedure';
 };
 
 export const generateCreateRouterImport = ({
@@ -42,10 +42,18 @@ export const generatetRPCImport = (sourceFile: SourceFile) => {
 export const generateShieldImport = (
   sourceFile: SourceFile,
   options: GeneratorOptions,
+  value: string | boolean,
 ) => {
   const outputDir = parseEnvValue(options.generator.output as EnvValue);
+
+  let shieldPath = getRelativePath(outputDir, 'shield/shield');
+
+  if (typeof value === 'string') {
+    shieldPath = getRelativePath(outputDir, value, true, options.schemaPath);
+  }
+
   sourceFile.addImportDeclaration({
-    moduleSpecifier: getRelativePath(outputDir, 'shield/shield'),
+    moduleSpecifier: shieldPath,
     namedImports: ['permissions'],
   });
 };
@@ -99,13 +107,14 @@ export function generateBaseRouter(
   }
 
   sourceFile.addStatements(/* ts */ `
-  export const t = trpc.initTRPC.context<Context>().create(${config.trpcOptionsPath ? 'trpcOptions' : ''
-    });
+  export const t = trpc.initTRPC.context<Context>().create(${
+    config.trpcOptionsPath ? 'trpcOptions' : ''
+  });
   `);
 
   const middlewares = [];
 
-  if (config.withMiddleware && typeof config.withMiddleware === "boolean") {
+  if (config.withMiddleware && typeof config.withMiddleware === 'boolean') {
     sourceFile.addStatements(/* ts */ `
     export const globalMiddleware = t.middleware(async ({ ctx, next }) => {
       console.log('inside middleware!')
@@ -117,18 +126,17 @@ export function generateBaseRouter(
     });
   }
 
-  if (config.withMiddleware && typeof config.withMiddleware === "string") {
+  if (config.withMiddleware && typeof config.withMiddleware === 'string') {
     sourceFile.addStatements(/* ts */ `
   import defaultMiddleware from '${getRelativePath(
-      outputDir,
-      config.withMiddleware,
-      true,
-      options.schemaPath,
-    )}';
+    outputDir,
+    config.withMiddleware,
+    true,
+    options.schemaPath,
+  )}';
   `);
     sourceFile.addStatements(/* ts */ `
-    export const globalMiddleware = t.middleware(defaultMiddleware);`
-    );
+    export const globalMiddleware = t.middleware(defaultMiddleware);`);
     middlewares.push({
       type: 'global',
       value: /* ts */ `.use(globalMiddleware)`,
@@ -159,10 +167,11 @@ export function generateBaseRouter(
       }
 
       sourceFile.addStatements(/* ts */ `
-      .use(${middleware.type === 'shield'
+      .use(${
+        middleware.type === 'shield'
           ? 'permissionsMiddleware'
           : 'globalMiddleware'
-        })
+      })
       `);
     });
   }
@@ -186,7 +195,9 @@ export function generateProcedure(
   sourceFile.addStatements(/* ts */ `${
     config.showModelNameInProcedure ? name : nameWithoutModel
   }: ${getProcedureName(config)}
-  ${config.withZod ? `.input(${typeName})` : ''}.${getProcedureTypeByOpName(baseOpType)}(async ({ ctx, input }) => {
+  ${config.withZod ? `.input(${typeName})` : ''}.${getProcedureTypeByOpName(
+    baseOpType,
+  )}(async ({ ctx, input }) => {
     const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
     modelName,
   )}.${opType.replace('One', '')}(${input});

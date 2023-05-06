@@ -178,7 +178,7 @@ model User {
 | `withMiddleware`           | Attaches a global middleware that runs before all procedures                           | `boolean or string`| `true`                                                                                                                                                              |
 | `output`                   | Output directory for the generated routers and zod schemas                             | `string`  | `./generated`                                                                                                                                                                |
 | `withZod`                  |  Use Zod for input validation                                                          | `boolean` | `true`                                                                                                                                                                       |
-| `withShield`               | Generates a tRPC Shield to use as a permissions layer                                  | `boolean` | `true`                                                                                                                                                                       |
+| `withShield`               | Generates a tRPC Shield to use as a permissions layer                                  | `boolean or string` | `true`                                                                                                                                                                       |
 | `contextPath`              | Sets the context path used in your routers                                             | `string`  | `../../../../src/context`                                                                                                                                                    |
 | `trpcOptionsPath`          | Sets the tRPC instance options                                                         | `string`  | `../../../../src/trpcOptions`                                                                                                                                                |
 | `isGenerateSelect`         | Enables the generation of Select related schemas and the select property               | `boolean` | `false`                                                                                                                                                                      |
@@ -193,7 +193,7 @@ generator trpc {
   provider           = "prisma-trpc-generator"
   output             = "./trpc"
   withMiddleware     = "../middleware"
-  withZod            = false 
+  withZod            = false
   withShield         = false
   contextPath        = "../context"
   trpcOptionsPath    = "../trpcOptions"

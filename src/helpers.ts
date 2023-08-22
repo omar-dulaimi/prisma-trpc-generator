@@ -230,6 +230,14 @@ export const getRouterSchemaImportByOpName = (
   const opType = opName.replace('OrThrow', '');
   const inputType = getInputTypeByOpName(opType, modelName);
 
+  if (opName === 'findRaw' || opName === 'aggregateRaw') {
+    const opType = opName.charAt(0).toUpperCase() + opName.slice(1);
+
+    return inputType
+      ? `import { ${inputType} } from "../schemas/objects/${modelName}${opType}.schema"; `
+      : '';
+  }
+
   return inputType
     ? `import { ${inputType} } from "../schemas/${opType}${modelName}.schema"; `
     : '';

@@ -17,11 +17,25 @@ export class TrpcGeneratorTestUtils {
         this.cleanup(outputPath);
       }
       
-      const command = `npx prisma generate --schema="${schemaPath}"`;
+      // Create a temporary schema with absolute generator path
+      const tempSchemaPath = schemaPath + '.tmp';
+      const projectRoot = path.resolve(__dirname, '..');
+      const generatorPath = path.join(projectRoot, 'lib', 'generator.js');
+      const updatedSchema = schemaContent.replace(
+        /provider\s*=\s*["']node\s+[^"']*generator\.js["']/,
+        `provider = "node \\"${generatorPath}\\""`
+      );
+      
+      fs.writeFileSync(tempSchemaPath, updatedSchema);
+      
+      const command = `npx prisma generate --schema="${tempSchemaPath}"`;
       execSync(command, { 
         stdio: 'pipe',
         timeout: 60000 // 60 second timeout
       });
+      
+      // Clean up temporary schema
+      fs.unlinkSync(tempSchemaPath);
     } catch (error) {
       console.error(`Failed to generate routers for ${schemaPath}:`, error);
       throw error;

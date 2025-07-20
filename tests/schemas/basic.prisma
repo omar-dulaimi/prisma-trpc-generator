@@ -1,0 +1,37 @@
+// Basic test schema with fundamental models and relationships
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator trpc {
+  provider    = "node \"/home/omar/Desktop/New Folder/libs/prisma-trpc-generator/lib/generator.js\""
+  output      = "../generated/basic"
+  contextPath = "../test-context"
+  withZod     = true
+  withShield  = false
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://test:test@localhost:5432/test"
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+  posts Post[]
+  
+  @@map("users")
+}
+
+model Post {
+  id        Int     @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean @default(false)
+  authorId  Int
+  author    User    @relation(fields: [authorId], references: [id])
+  
+  @@map("posts")
+}

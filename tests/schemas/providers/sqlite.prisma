@@ -1,0 +1,50 @@
+// SQLite provider test schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator trpc {
+  provider    = "node \"/home/omar/Desktop/New Folder/libs/prisma-trpc-generator/lib/generator.js\""
+  output      = "../../generated/sqlite"
+  contextPath = "../../test-context"
+  withZod     = true
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./test.db"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  age       Int?
+  balance   Decimal  @default(0.00)
+  isActive  Boolean  @default(true)
+  data      String?  // JSON stored as string in SQLite
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts     Post[]
+  
+  @@map("users")
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean  @default(false)
+  views     Int      @default(0)
+  tags      String?  // Array stored as string in SQLite
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  
+  @@map("posts")
+}
+
+model SimpleModel {
+  id   Int    @id @default(autoincrement())
+  name String
+}

@@ -1,0 +1,267 @@
+// Comprehensive test schema with all Prisma features
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator trpc {
+  provider                 = "node \"/home/omar/Desktop/New Folder/libs/prisma-trpc-generator/lib/generator.js\""
+  output                   = "../generated/comprehensive"
+  contextPath              = "../test-context"
+  withZod                  = true
+  withShield               = true
+  isGenerateSelect         = true
+  isGenerateInclude        = true
+  showModelNameInProcedure = true
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://test:test@localhost:5432/test"
+}
+
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  PENDING
+  SUSPENDED
+}
+
+model User {
+  id          Int         @id @default(autoincrement())
+  uuid        String      @unique @default(uuid())
+  email       String      @unique
+  name        String?
+  role        Role        @default(USER)
+  status      Status      @default(ACTIVE)
+  age         Int?
+  bio         String?
+  avatar      Bytes?
+  isVerified  Boolean     @default(false)
+  balance     Decimal     @default(0.00)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+  
+  // Relationships
+  posts       Post[]
+  comments    Comment[]
+  profile     Profile?
+  categories  Category[]  @relation("UserCategories")
+  orders      Order[]
+  books       Book[]      @relation("UserBooks")
+  
+  @@map("users")
+  @@index([email])
+  @@index([role, status])
+}
+
+model Profile {
+  id        Int     @id @default(autoincrement())
+  userId    Int     @unique
+  firstName String
+  lastName  String
+  phone     String?
+  address   String?
+  website   String?
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("profiles")
+}
+
+model Post {
+  id          Int         @id @default(autoincrement())
+  slug        String      @unique
+  title       String
+  content     String?
+  excerpt     String?
+  published   Boolean     @default(false)
+  publishedAt DateTime?
+  views       Int         @default(0)
+  likes       Int         @default(0)
+  metadata    Json?
+  tags        String[]
+  authorId    Int
+  categoryId  Int?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // Relationships
+  author      User        @relation(fields: [authorId], references: [id])
+  category    Category?   @relation(fields: [categoryId], references: [id])
+  comments    Comment[]
+  
+  @@map("posts")
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([published, publishedAt])
+  @@index([title])
+}
+
+model Comment {
+  id        Int       @id @default(autoincrement())
+  content   String
+  approved  Boolean   @default(false)
+  postId    Int
+  authorId  Int
+  parentId  Int?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  // Relationships
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User      @relation(fields: [authorId], references: [id])
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   Comment[] @relation("CommentReplies")
+  
+  @@map("comments")
+  @@index([postId])
+  @@index([authorId])
+}
+
+model Category {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  slug        String  @unique
+  description String?
+  color       String?
+  icon        String?
+  parentId    Int?
+  sortOrder   Int     @default(0)
+  isActive    Boolean @default(true)
+  
+  // Relationships
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  posts       Post[]
+  users       User[]     @relation("UserCategories")
+  
+  @@map("categories")
+  @@index([parentId])
+  @@index([isActive, sortOrder])
+}
+
+model Product {
+  id           Int           @id @default(autoincrement())
+  sku          String        @unique
+  name         String
+  description  String?
+  price        Decimal
+  costPrice    Decimal?
+  weight       Float?
+  dimensions   Json?
+  inStock      Boolean       @default(true)
+  stockCount   Int           @default(0)
+  images       String[]
+  specifications Json?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  
+  // Relationships
+  orderItems   OrderItem[]
+  
+  @@map("products")
+  @@index([sku])
+  @@index([inStock, stockCount])
+}
+
+model Order {
+  id          Int         @id @default(autoincrement())
+  orderNumber String      @unique @default(uuid())
+  status      String      @default("pending")
+  total       Decimal
+  tax         Decimal     @default(0.00)
+  shipping    Decimal     @default(0.00)
+  discount    Decimal     @default(0.00)
+  notes       String?
+  shippingAddress Json?
+  billingAddress  Json?
+  customerId  Int
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // Relationships
+  customer    User        @relation(fields: [customerId], references: [id])
+  items       OrderItem[]
+  
+  @@map("orders")
+  @@index([customerId])
+  @@index([status, createdAt])
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  quantity  Int
+  price     Decimal
+  total     Decimal
+  orderId   Int
+  productId Int
+  
+  // Relationships
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+  
+  @@map("order_items")
+  @@unique([orderId, productId])
+}
+
+model Book {
+  id       Int    @id @default(autoincrement())
+  title    String
+  author   String
+  isbn     String @unique
+  pages    Int?
+  rating   Float?
+  authorId Int?
+  user     User?  @relation("UserBooks", fields: [authorId], references: [id])
+  
+  @@map("books")
+}
+
+model Map {
+  id        BigInt   @id @default(autoincrement())
+  name      String
+  latitude  Float
+  longitude Float
+  data      Bytes?
+  createdAt DateTime @default(now())
+  
+  @@map("maps")
+}
+
+model Tag {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  color String @default("#000000")
+  
+  @@map("tags")
+}
+
+model Setting {
+  id    Int    @id @default(autoincrement())
+  key   String @unique
+  value String
+  type  String @default("string")
+  
+  @@map("settings")
+}
+
+model Log {
+  id        Int      @id @default(autoincrement())
+  level     String
+  message   String
+  data      Json?
+  userId    Int?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  
+  @@map("logs")
+  @@index([level, createdAt])
+  @@index([userId])
+}

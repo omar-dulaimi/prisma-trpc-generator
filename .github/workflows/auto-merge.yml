@@ -1,0 +1,116 @@
+name: Auto-merge PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  check_suite:
+    types: [completed]
+  status: {}
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    if: github.actor == 'omar-dulaimi' || contains(github.event.pull_request.labels.*.name, 'auto-merge')
+    
+    steps:
+    - name: Check PR status
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          const pr_number = context.payload.pull_request?.number || 
+                           context.payload.check_suite?.pull_requests[0]?.number;
+          
+          if (!pr_number) {
+            console.log('No PR number found, skipping');
+            return;
+          }
+          
+          // Get PR details
+          const { data: pr } = await github.rest.pulls.get({
+            owner,
+            repo,
+            pull_number: pr_number
+          });
+          
+          // Check if PR is ready for merge
+          if (pr.draft) {
+            console.log('PR is draft, skipping auto-merge');
+            return;
+          }
+          
+          if (pr.state !== 'open') {
+            console.log('PR is not open, skipping auto-merge');
+            return;
+          }
+          
+          // Get check runs
+          const { data: checkRuns } = await github.rest.checks.listForRef({
+            owner,
+            repo,
+            ref: pr.head.sha
+          });
+          
+          // Check if all checks are successful
+          const requiredChecks = ['test (18.x)', 'test (20.x)', 'test (22.x)', 'package-test'];
+          const checkStatus = {};
+          
+          for (const check of checkRuns.check_runs) {
+            if (requiredChecks.includes(check.name)) {
+              checkStatus[check.name] = check.conclusion;
+            }
+          }
+          
+          console.log('Check status:', checkStatus);
+          
+          const allChecksPassed = requiredChecks.every(check => 
+            checkStatus[check] === 'success'
+          );
+          
+          if (!allChecksPassed) {
+            console.log('Not all checks passed yet, waiting...');
+            return;
+          }
+          
+          // Check if auto-merge is enabled
+          const hasAutoMergeLabel = pr.labels.some(label => label.name === 'auto-merge');
+          const isOwner = pr.user.login === 'omar-dulaimi';
+          
+          if (!hasAutoMergeLabel && !isOwner) {
+            console.log('Auto-merge not enabled for this PR');
+            return;
+          }
+          
+          // Merge the PR
+          try {
+            await github.rest.pulls.merge({
+              owner,
+              repo,
+              pull_number: pr_number,
+              commit_title: `${pr.title}`,
+              commit_message: `Automatically merged PR #${pr_number}`,
+              merge_method: 'squash'
+            });
+            
+            console.log(`Successfully merged PR #${pr_number}`);
+            
+            // Create and push tag for release if it's a version bump
+            const version = require('./package.json').version;
+            const tagName = `v${version}`;
+            
+            try {
+              await github.rest.git.createRef({
+                owner,
+                repo,
+                ref: `refs/tags/${tagName}`,
+                sha: pr.merge_commit_sha
+              });
+              
+              console.log(`Created tag ${tagName}`);
+            } catch (tagError) {
+              console.log('Tag creation failed or tag already exists:', tagError.message);
+            }
+            
+          } catch (error) {
+            console.error('Failed to merge PR:', error.message);
+          }

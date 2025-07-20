@@ -4,3 +4,39 @@ package
 npm-debug.log*
 prisma/generated
 prisma/shield
+
+# Test generated files
+tests/generated/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Build artifacts
+dist/
+build/

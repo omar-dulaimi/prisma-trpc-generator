@@ -3,4 +3,7 @@ package/**/*
 tests/generated/**/*
 node_modules/**/*
 coverage/**/*
-*.log
+*.config.js
+*.config.mjs
+vitest.config.js
+eslint.config.mjs

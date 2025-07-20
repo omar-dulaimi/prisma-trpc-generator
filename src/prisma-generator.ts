@@ -63,7 +63,7 @@ export async function generate(options: GeneratorOptions) {
   const modelOperations = prismaClientDmmf.mappings.modelOperations;
   const models = prismaClientDmmf.datamodel.models;
   const hiddenModels: string[] = [];
-  resolveModelsComments(models, hiddenModels);
+  resolveModelsComments([...models], hiddenModels);
   const createRouter = project.createSourceFile(
     path.resolve(outputDir, 'routers', 'helpers', 'createRouter.ts'),
     undefined,
@@ -97,10 +97,10 @@ export async function generate(options: GeneratorOptions) {
     const { model, ...operations } = modelOperation;
     if (hiddenModels.includes(model)) continue;
 
-    const modelActions = Object.keys(operations).filter<DMMF.ModelAction>(
-      (opType): opType is DMMF.ModelAction =>
+    const modelActions = Object.keys(operations).filter(
+      (opType) =>
         config.generateModelActions.includes(
-          opType.replace('One', '') as DMMF.ModelAction,
+          opType.replace('One', '') as any,
         ),
     );
     if (!modelActions.length) continue;
@@ -127,7 +127,7 @@ export async function generate(options: GeneratorOptions) {
       export const ${plural}Router = t.router({`);
 
     for (const opType of modelActions) {
-      const opNameWithModel = operations[opType];
+      const opNameWithModel = (operations as any)[opType];
       const baseOpType = opType.replace('OrThrow', '');
 
       generateProcedure(

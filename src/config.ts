@@ -1,4 +1,4 @@
-import { DMMF } from '@prisma/generator-helper';
+import type { DMMF } from '@prisma/generator-helper';
 import { z } from 'zod';
 
 const configBoolean = z
@@ -15,7 +15,28 @@ const configShield = z.union([
   z.string().default('../../../../src/shield'),
 ]);
 
-const modelActionEnum = z.nativeEnum(DMMF.ModelAction);
+// Define model actions directly since DMMF.ModelAction is not available at runtime
+const ModelAction = {
+  findFirst: 'findFirst',
+  findFirstOrThrow: 'findFirstOrThrow', 
+  findMany: 'findMany',
+  findUnique: 'findUnique',
+  findUniqueOrThrow: 'findUniqueOrThrow',
+  create: 'create',
+  createMany: 'createMany',
+  update: 'update',
+  updateMany: 'updateMany',
+  upsert: 'upsert',
+  delete: 'delete',
+  deleteMany: 'deleteMany',
+  aggregate: 'aggregate',
+  groupBy: 'groupBy',
+  count: 'count',
+  findRaw: 'findRaw',
+  aggregateRaw: 'aggregateRaw'
+} as const;
+
+const modelActionEnum = z.nativeEnum(ModelAction);
 
 export const configSchema = z.object({
   withMiddleware: configMiddleware.default('true'),
@@ -26,7 +47,7 @@ export const configSchema = z.object({
   showModelNameInProcedure: configBoolean.default('true'),
   generateModelActions: z
     .string()
-    .default(Object.values(DMMF.ModelAction).join(','))
+    .default(Object.values(ModelAction).join(','))
     .transform((arg) => {
       return arg
         .split(',')

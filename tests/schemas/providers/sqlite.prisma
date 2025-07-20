@@ -4,7 +4,7 @@ generator client {
 }
 
 generator trpc {
-  provider    = "../../../lib/generator.js"
+  provider    = "node ../../../lib/generator.js"
   output      = "../../generated/sqlite"
   contextPath = "../../test-context"
   withZod     = true

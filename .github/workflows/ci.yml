@@ -51,8 +51,8 @@ jobs:
     #   uses: codecov/codecov-action@v5
     #   with:
     #     token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./coverage/coverage-final.json
-        fail_ci_if_error: false
+    #     files: ./coverage/coverage-final.json
+    #     fail_ci_if_error: false
         
   package-test:
     runs-on: ubuntu-latest

@@ -4,7 +4,7 @@ generator client {
 }
 
 generator trpc {
-  provider                 = "node \"/home/omar/Desktop/New Folder/libs/prisma-trpc-generator/lib/generator.js\""
+  provider                 = "../../lib/generator.js"
   output                   = "../generated/edge-cases"
   contextPath              = "../test-context"
   withZod                  = true

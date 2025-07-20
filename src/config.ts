@@ -1,4 +1,3 @@
-import type { DMMF } from '@prisma/generator-helper';
 import { z } from 'zod';
 
 const configBoolean = z

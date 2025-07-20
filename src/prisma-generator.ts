@@ -1,4 +1,4 @@
-import { DMMF, EnvValue, GeneratorOptions } from '@prisma/generator-helper';
+import { EnvValue, GeneratorOptions } from '@prisma/generator-helper';
 import { getDMMF, parseEnvValue } from '@prisma/internals';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -98,10 +98,10 @@ export async function generate(options: GeneratorOptions) {
     if (hiddenModels.includes(model)) continue;
 
     const modelActions = Object.keys(operations).filter(
-      (opType) =>
-        config.generateModelActions.includes(
-          opType.replace('One', '') as any,
-        ),
+      (opType) => {
+        const baseOpType = opType.replace('One', '').replace('OrThrow', '');
+        return config.generateModelActions.includes(baseOpType);
+      }
     );
     if (!modelActions.length) continue;
 
@@ -127,7 +127,7 @@ export async function generate(options: GeneratorOptions) {
       export const ${plural}Router = t.router({`);
 
     for (const opType of modelActions) {
-      const opNameWithModel = (operations as any)[opType];
+      const opNameWithModel = operations[opType as keyof typeof operations];
       const baseOpType = opType.replace('OrThrow', '');
 
       generateProcedure(

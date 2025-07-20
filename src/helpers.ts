@@ -117,7 +117,7 @@ export function generateBaseRouter(
   if (config.withMiddleware && typeof config.withMiddleware === 'boolean') {
     sourceFile.addStatements(/* ts */ `
     export const globalMiddleware = t.middleware(async ({ ctx, next }) => {
-      console.log('inside middleware!')
+      // Add your middleware logic here
       return next()
     });`);
     middlewares.push({
@@ -281,7 +281,7 @@ export const getInputTypeByOpName = (opName: string, modelName: string) => {
       inputType = `${modelName}GroupBySchema`;
       break;
     default:
-      console.log('getInputTypeByOpName: ', { opName, modelName });
+      // Fallback for unknown operation types
   }
   return inputType;
 };
@@ -308,7 +308,7 @@ export const getProcedureTypeByOpName = (opName: string) => {
       procType = 'mutation';
       break;
     default:
-      console.log('getProcedureTypeByOpName: ', { opName });
+      // Fallback for unknown operation types
   }
   return procType;
 };
@@ -319,7 +319,7 @@ export function resolveModelsComments(
 ) {
   const modelAttributeRegex = /(@@Gen\.)+([A-z])+(\()+(.+)+(\))+/;
   const attributeNameRegex = /(?:\.)+([A-Za-z])+(?:\()+/;
-  const attributeArgsRegex = /(?:\()+([A-Za-z])+\:+(.+)+(?:\))+/;
+  const attributeArgsRegex = /(?:\()+([A-Za-z])+:+(.+)+(?:\))+/;
 
   for (const model of models) {
     if (model.documentation) {

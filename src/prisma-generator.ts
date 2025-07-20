@@ -100,7 +100,7 @@ export async function generate(options: GeneratorOptions) {
     const modelActions = Object.keys(operations).filter(
       (opType) => {
         const baseOpType = opType.replace('One', '').replace('OrThrow', '');
-        return config.generateModelActions.includes(baseOpType);
+        return config.generateModelActions.some(action => action === baseOpType);
       }
     );
     if (!modelActions.length) continue;

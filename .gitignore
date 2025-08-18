@@ -6,6 +6,8 @@ prisma/generated
 prisma/shield
 generated
 prisma/dev.db
+prisma/schema.*.prisma
+prisma/trpc.config.*.json
 
 # Test generated files
 tests/generated/

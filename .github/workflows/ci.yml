@@ -30,16 +30,15 @@ jobs:
     - name: Build project
       run: npm run generate
       
-    - name: Run type checking
-      run: npm run test:type-check
+  # Type-check happens during build (tsc in npm run generate). No separate typecheck script.
       
     - name: Run linting
       run: npm run lint || echo "Linting failed but continuing for now"
       continue-on-error: true
       
-    - name: Run basic tests  
+    - name: Run unit tests  
       if: matrix.node-version != '18.x'
-      run: npm run test:basic
+      run: npm test --silent
       
     - name: Run compilation test (Node 18.x only)
       if: matrix.node-version == '18.x'

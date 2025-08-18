@@ -1,3 +1,9 @@
+## [2.2.1](https://github.com/omar-dulaimi/prisma-trpc-generator/compare/v2.2.0...v2.2.1) (2025-08-18)
+
+### 🐛 Bug Fixes
+
+* upgrade prisma-zod-generator to 1.12.4 and align groupBy _count typing; ensure AndReturn schemas strict; wire count schemas ([89206e9](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/89206e905d1a5c9aa715c18e4fa54ad0449d7e07))
+
 ## [2.2.0](https://github.com/omar-dulaimi/prisma-trpc-generator/compare/v2.1.2...v2.2.0) (2025-08-18)
 
 ### 🚀 Features

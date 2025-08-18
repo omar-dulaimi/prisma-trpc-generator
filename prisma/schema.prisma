@@ -10,13 +10,14 @@ generator trpc {
   withShield        = "./shield"
   contextPath       = "./context"
   trpcOptionsPath   = "./trpcOptions"
+  postman           = "true"
+  postmanExamples   = "skeleton"
 }
 
 datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"
 }
-
 
 model User {
   id    Int     @id @default(autoincrement())
@@ -27,17 +28,19 @@ model User {
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   title     String
   content   String?
-  published Boolean  @default(false)
-  viewCount Int      @default(0)
-  author    User?    @relation(fields: [authorId], references: [id])
+  published Boolean   @default(false)
+  viewCount Int       @default(0)
+  author    User?     @relation(fields: [authorId], references: [id])
   authorId  Int?
   likes     BigInt
   bytes     Bytes
+  tenantId  Int?
+  deletedAt DateTime?
 }
 
 model Book {

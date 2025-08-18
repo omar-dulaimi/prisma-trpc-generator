@@ -638,4 +638,204 @@ import { makeServices } from "${rel.startsWith('.') ? rel : `./${rel}`}";
 
   // Skip heavy formatting for performance during tests/CI
   await project.save();
+
+  // Postman collection
+  const postmanOpt = config.postman;
+  const postmanEnabled = !!postmanOpt && postmanOpt !== (false as any);
+  if (postmanEnabled) {
+    const postmanDir = path.resolve(outputDir, 'postman');
+    await fs.mkdir(postmanDir, { recursive: true });
+    const endpoint = (typeof postmanOpt === 'object' && 'endpoint' in postmanOpt)
+      ? (postmanOpt as any).endpoint
+      : 'http://localhost:3000/trpc';
+    const envName = (typeof postmanOpt === 'object' && 'envName' in postmanOpt)
+      ? (postmanOpt as any).envName
+      : 'TRPC_ENDPOINT';
+    let examplesMode: 'none' | 'skeleton' = 'none';
+    if (typeof postmanOpt === 'object' && 'examples' in postmanOpt) {
+      examplesMode = ((postmanOpt as any).examples ?? 'none') as 'none' | 'skeleton';
+    } else if (config.postmanExamples) {
+      examplesMode = config.postmanExamples as 'none' | 'skeleton';
+    }
+
+    // Build a minimal Postman collection from the modelOperations we already enumerated
+    // Helpers to build skeleton payloads
+    const getModelByName = (name: string) => models.find((m) => m.name === name);
+    const toWhereUnique = (m: string) => {
+      const model = getModelByName(m);
+      const idField = model?.fields.find((f) => f.isId) || model?.fields.find((f) => f.isUnique);
+      if (!idField) return {} as any;
+      const sample = idField.type === 'Int' || idField.type === 'BigInt' ? 1 : idField.type === 'String' ? 'id' : idField.type === 'DateTime' ? new Date().toISOString() : 1;
+      return { [idField.name]: sample } as any;
+    };
+  const sampleScalar = (field: typeof models[number]['fields'][number]): any => {
+      if (field.isList) return [];
+      switch (field.type) {
+        case 'Int':
+        case 'BigInt':
+          return 1;
+        case 'Float':
+        case 'Decimal':
+          return 1.0;
+        case 'Boolean':
+          return true;
+        case 'String':
+          return `${field.name}`;
+        case 'DateTime':
+          return new Date().toISOString();
+        default:
+          return null;
+      }
+    };
+    const pickGroupByField = (m: string) => {
+      const model = getModelByName(m);
+      if (!model) return 'id';
+      const idField = model.fields.find((f) => f.isId);
+      if (idField) return idField.name;
+      const scalar = model.fields.find(
+        (f) => !f.relationName && (f.type === 'Int' || f.type === 'String' || f.type === 'Boolean' || f.type === 'DateTime'),
+      );
+      return scalar?.name ?? model.fields[0]?.name ?? 'id';
+    };
+    const buildCreateData = (m: string) => {
+      const model = getModelByName(m);
+      if (!model) return {};
+      const cfg = modelGenConfig[model.name] || {};
+      const data: any = {};
+      for (const f of model.fields) {
+        if (f.isId && f.hasDefaultValue) continue;
+        if (f.isUpdatedAt) continue;
+        if (f.isRequired && !f.relationName) {
+          data[f.name] = sampleScalar(f);
+        }
+      }
+      // tenancy: do not include tenant in sample data; it's injected server-side
+      if (cfg.tenantKey) delete data[cfg.tenantKey];
+      // soft delete: not part of create data unless required (it shouldn't be required)
+      if (cfg.softDeleteKey) delete data[cfg.softDeleteKey];
+      return data;
+    };
+    const buildUpdateData = (m: string) => {
+      const model = getModelByName(m);
+      if (!model) return {};
+      const cfg = modelGenConfig[model.name] || {};
+      const data: any = {};
+      // pick a couple of optional scalars to update
+      for (const f of model.fields) {
+        if (f.relationName) continue;
+        if (f.isId) continue;
+        if (f.isUpdatedAt) continue;
+        // exclude tenant/soft keys from sample
+        if (cfg.tenantKey && f.name === cfg.tenantKey) continue;
+        if (cfg.softDeleteKey && f.name === cfg.softDeleteKey) continue;
+        data[f.name] = sampleScalar(f);
+        // keep payload small
+        if (Object.keys(data).length >= 2) break;
+      }
+      return data;
+    };
+
+    // The tRPC path convention is `${model}.${procedure}`; we'll emit POST requests with JSON body
+    const items: any[] = [];
+    for (const modelOperation of modelOperations) {
+      const { model, ...operations } = modelOperation;
+      if (hiddenModels.includes(model)) continue;
+      // Compute final operations we generated routers for
+      const reportedOps = Object.keys(operations);
+      const extraOps = ['createManyAndReturn', 'updateManyAndReturn', 'count'];
+      let requestedExtras = extraOps.filter((extra) =>
+        config.generateModelActions.includes(extra as unknown as never),
+      );
+      const modelActions = [
+        ...reportedOps,
+        ...requestedExtras.filter((op) => !reportedOps.includes(op)),
+      ].filter((opType) => {
+        const baseOpType = opType.replace('One', '').replace('OrThrow', '');
+        return config.generateModelActions.some((action) => action === baseOpType);
+      });
+      if (!modelActions.length) continue;
+
+      const folder: any = { name: model, item: [] as any[] };
+      const cfg = modelGenConfig[model] || {};
+      for (const opType of modelActions) {
+        const trpcPath = `${model.toLowerCase()}.${opType.replace('One', '')}`;
+        const name = `${model}.${opType}`;
+        let input: any = {};
+        if (examplesMode === 'skeleton') {
+          const normalized = opType.replace('One', '');
+          const isUnique = ['findUnique','findUniqueOrThrow','delete','update','upsert'].includes(normalized);
+          const isFindFirst = ['findFirst','findFirstOrThrow'].includes(normalized);
+          const isFindManyLike = ['findMany','aggregate','count'].includes(normalized);
+          const isGroupBy = normalized === 'groupBy';
+          const isCreate = normalized === 'create' || normalized === 'createMany' || normalized === 'createManyAndReturn';
+          const isUpdate = normalized === 'update' || normalized === 'updateMany' || normalized === 'updateManyAndReturn' || normalized === 'upsert';
+          const isDeleteMany = normalized === 'deleteMany';
+
+          if (isUnique) {
+            input = { where: toWhereUnique(model) };
+            if (normalized === 'update') input.data = buildUpdateData(model);
+            if (normalized === 'upsert') input = { where: toWhereUnique(model), update: buildUpdateData(model), create: buildCreateData(model) };
+          } else if (isFindFirst) {
+            input = { where: {}, orderBy: [{ id: 'asc' }], take: 1 };
+          } else if (isFindManyLike) {
+            input = { where: {}, orderBy: [{ id: 'asc' }], take: 10 };
+          } else if (isGroupBy) {
+            const byField = pickGroupByField(model);
+            input = { by: [byField], orderBy: [{ [byField]: 'asc' }], _count: { _all: true } } as any;
+          } else if (isCreate) {
+            input = normalized === 'create' ? { data: buildCreateData(model) } : { data: [buildCreateData(model)] };
+          } else if (isUpdate) {
+            // updateMany and updateManyAndReturn
+            input = { where: {}, data: buildUpdateData(model) };
+          } else if (isDeleteMany) {
+            input = { where: {} };
+          }
+
+          // Do not include tenantId or soft-delete keys in samples; service layer handles them
+          if (cfg.tenantKey && input?.where && input.where[cfg.tenantKey]) delete input.where[cfg.tenantKey];
+          if (cfg.softDeleteKey && input?.where && input.where[cfg.softDeleteKey]) delete input.where[cfg.softDeleteKey];
+        }
+
+        folder.item.push({
+          name,
+          request: {
+            method: 'POST',
+            header: [{ key: 'Content-Type', value: 'application/json' }],
+            url: {
+              raw: `{{${envName}}}/${trpcPath}`,
+              host: [`{{${envName}}}`],
+              path: trpcPath.split('.'),
+            },
+            body: {
+              mode: 'raw',
+              raw: JSON.stringify({ input }, null, 2),
+              options: { raw: { language: 'json' } },
+            },
+          },
+        });
+      }
+      items.push(folder);
+    }
+
+    const collection = {
+      info: {
+        name: 'Prisma tRPC Generator',
+        schema: 'https://schema.getpostman.com/json/collection/v2.1.0/collection.json',
+      },
+      item: items,
+      variable: [
+        {
+          key: envName,
+          value: endpoint,
+          type: 'string',
+        },
+      ],
+    } as const;
+
+    await fs.writeFile(
+      path.resolve(postmanDir, 'collection.json'),
+      JSON.stringify(collection, null, 2),
+      'utf8',
+    );
+  }
 }

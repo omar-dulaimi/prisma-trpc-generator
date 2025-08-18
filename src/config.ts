@@ -52,6 +52,28 @@ export const configSchema = z.object({
   contextPath: z.string().default('../../../../src/context'),
   // README default
   trpcOptionsPath: z.string().optional().default('../../../../src/trpcOptions'),
+  // Postman collection emission
+  postman: z
+    .union([
+      booleanLike,
+      z.object({
+        endpoint: z.string().optional().default('http://localhost:3000/trpc'),
+        envName: z.string().optional().default('TRPC_ENDPOINT'),
+        fromOpenApi: booleanLike.optional().default(false),
+        // Examples mode for request bodies in generated collection
+        examples: z
+          .enum(['none', 'skeleton'])
+          .optional()
+          .default('none'),
+      }),
+    ])
+    .optional()
+    .default(false),
+  // Flat alternative for configuring Postman examples (since Prisma generator config is flat key-value)
+  postmanExamples: z
+    .enum(['none', 'skeleton'])
+    .optional()
+    .default('none'),
   // Request ID + logging
   withRequestId: booleanLike.optional().default(false),
   withLogging: booleanLike.optional().default(false),

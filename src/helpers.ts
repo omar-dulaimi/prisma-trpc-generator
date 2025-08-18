@@ -188,9 +188,10 @@ export function generateProcedure(
   let input = `input${!config.withZod ? ' as any' : ''}`;
   const nameWithoutModel = name.replace(modelName as string, '');
   if (nameWithoutModel === 'groupBy' && config.withZod) {
-    input =
-      '{ where: input.where, orderBy: input.orderBy, by: input.by, having: input.having, take: input.take, skip: input.skip }';
+    // Ensure 'orderBy' key exists in the argument type to satisfy Prisma's groupBy constraints
+    input = '{ ...input, orderBy: input.orderBy }';
   }
+  // For groupBy, pass the full input (schema aligns with Prisma.GroupByArgs)
   sourceFile.addStatements(/* ts */ `${
     config.showModelNameInProcedure ? name : nameWithoutModel
   }: ${getProcedureName(config)}
@@ -235,7 +236,7 @@ export const getRouterSchemaImportByOpName = (
   // Determine the actual schema filename prefix for this op
   // Most ops match opType, but some reuse other inputs
   let fileOp = opType;
-  if (opType === 'count') fileOp = 'findMany';
+  if (opType === 'count') fileOp = 'count';
 
   return `import { ${inputType} } from "${schemasImportBase}/${fileOp}${modelName}.schema"; `;
 };
@@ -292,8 +293,8 @@ export const getInputTypeByOpName = (opName: string, modelName: string) => {
       inputType = `${modelName}GroupBySchema`;
       break;
     case 'count':
-      // Reuse FindMany args for count
-      inputType = `${modelName}FindManySchema`;
+      // Use dedicated Count args schema
+      inputType = `${modelName}CountSchema`;
       break;
     default:
     // Fallback for unknown operation types

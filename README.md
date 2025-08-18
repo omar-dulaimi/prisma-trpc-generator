@@ -1,138 +1,183 @@
-<div align="center">
-  <img src="https://raw.githubusercontent.com/omar-dulaimi/prisma-trpc-generator/master/logo.png" alt="Prisma tRPC Generator" width="100" height="100">
-  
-  # ⚡ Prisma tRPC Generator
-  
-  ### 🚀 **Automatically generate fully implemented tRPC routers from your Prisma schema**
-  
-  ✨ **Enhanced with improved error handling and better TypeScript support**
-  
-  <p>
-    <a href="https://www.npmjs.com/package/prisma-trpc-generator">
-      <img src="https://img.shields.io/npm/v/prisma-trpc-generator.svg?style=for-the-badge&logo=npm&color=blue" alt="Latest Version">
-    </a>
-  </p>
-  
-  <p>
-    <a href="https://www.npmjs.com/package/prisma-trpc-generator">
-      <img src="https://img.shields.io/npm/dt/prisma-trpc-generator.svg?style=for-the-badge&logo=npm&color=green" alt="Downloads">
-    </a>
-    <a href="https://github.com/omar-dulaimi/prisma-trpc-generator/actions">
-      <img src="https://img.shields.io/github/actions/workflow/status/omar-dulaimi/prisma-trpc-generator/ci.yml?style=for-the-badge&logo=github" alt="CI Status">
-    </a>
-    <a href="LICENSE">
-      <img src="https://img.shields.io/npm/l/prisma-trpc-generator.svg?style=for-the-badge&color=purple" alt="License">
-    </a>
-  </p>
-  
-  <p>
-    <strong>🎯 Zero-config • 🛡️ Type-safe • ⚡ Fast • 🔧 Customizable</strong>
-  </p>
-  
-</div>
+# ⚡ Prisma tRPC Generator
 
----
+Automatically generate fully implemented, type-safe tRPC routers from your Prisma schema.
 
-<br>
+<p>
+  <a href="https://www.npmjs.com/package/prisma-trpc-generator">
+    <img src="https://img.shields.io/npm/v/prisma-trpc-generator.svg?style=for-the-badge&logo=npm&color=blue" alt="Latest Version">
+  </a>
+  <a href="https://www.npmjs.com/package/prisma-trpc-generator">
+    <img src="https://img.shields.io/npm/dt/prisma-trpc-generator.svg?style=for-the-badge&logo=npm&color=green" alt="Downloads">
+  </a>
+  <a href="https://github.com/omar-dulaimi/prisma-trpc-generator/actions">
+    <img src="https://img.shields.io/github/actions/workflow/status/omar-dulaimi/prisma-trpc-generator/ci.yml?style=for-the-badge&logo=github" alt="CI Status">
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/npm/l/prisma-trpc-generator.svg?style=for-the-badge&color=purple" alt="License">
+  </a>
+</p>
 
-<div align="center">
-  <h3>💡 Transform your Prisma schema into production-ready tRPC APIs</h3>
-  <p><em>Automatically generates type-safe endpoints with Zod validation, middleware support, and optional tRPC Shield integration</em></p>
-</div>
+> 🎯 Zero‑config • 🛡️ Type‑safe • ⚡ Fast • 🔧 Customizable
 
-<div align="center">
-  
-  ## 💖 **Support This Project**
-  
-  <p><em>If this tool accelerates your development, consider supporting its growth</em></p>
-  
+<p align="center"><em>Transforms your Prisma schema into production‑ready tRPC APIs with Zod validation, middleware, and optional tRPC Shield.</em></p>
+
+<p align="center">
   <a href="https://github.com/sponsors/omar-dulaimi">
-    <img src="https://img.shields.io/badge/💝_Sponsor_on_GitHub-ea4aaa?style=for-the-badge&logo=github&logoColor=white" alt="GitHub Sponsors" height="45">
+    <img src="https://img.shields.io/badge/💝_Sponsor_on_GitHub-ea4aaa?style=for-the-badge&logo=github&logoColor=white" alt="GitHub Sponsors" height="36">
   </a>
-  
-  <p><strong>✨ Your sponsorship drives innovation and keeps this project thriving ✨</strong></p>
-  
-</div>
+</p>
 
-## ✨ **Key Features**
+## ✨ Key features
 
-- 🚀 **Zero Configuration** - Works out of the box with sensible defaults
-- 🔄 **Auto-Generated** - Always stays in sync with your Prisma schema  
-- 🛡️ **100% Type-Safe** - Full TypeScript support with compile-time error checking
-- 🎯 **Complete CRUD** - Generates all Prisma operations (find, create, update, delete)
-- ⚙️ **Highly Customizable** - Configure paths, middleware, and generation options
-- 📦 **Lightweight** - Minimal runtime overhead and fast generation
-- 🔗 **Rich Ecosystem** - Integrates with Zod validation, tRPC Shield, and custom middleware
-- 🎨 **Flexible** - Supports custom context, middleware, and routing patterns
+- 🚀 Zero configuration defaults
+- 🔄 Always in sync with your Prisma schema
+- 🛡️ 100% TypeScript type-safety
+- 🎯 Complete CRUD coverage for all Prisma operations
+- ⚙️ Highly configurable: paths, middleware, shield, options
+- 📦 Lightweight and fast generation
+- 🔗 Integrates with Zod, tRPC Shield, and custom middleware
 
 ---
 
-<div align="center">
-  
-  <h3>🌟 **Show Your Support** 🌟</h3>
-  
-  <a href="https://github.com/omar-dulaimi/prisma-trpc-generator">
-    <img src="https://img.shields.io/github/stars/omar-dulaimi/prisma-trpc-generator?style=for-the-badge&logo=github&color=yellow" alt="GitHub Stars">
-  </a>
-  
-</div>
+## 📚 Table of contents
+
+- [🚀 Quick start](#quick-start)
+- [⚙️ Configuration](#configuration)
+- [🔎 Feature guide](#feature-guide)
+  - [Zod validation](#1-zod-validation-inputs)
+  - [Middleware & Shield](#2-middleware--shield)
+  - [Auth](#3-auth-session--jwt--custom)
+  - [Request ID + logging](#4-request-id--logging)
+  - [OpenAPI (MVP)](#5-openapi-mvp)
+  - [Postman collection](#6-postman-collection)
+  - [DDD services (optional)](#7-ddd-services-optional)
+  - [Migration from inline config](#migration-from-inline-config)
+- [📋 Generated output](#generated-output)
+- [🛠️ Advanced usage](#advanced-usage)
+- [🧪 Troubleshooting, performance, FAQ](#troubleshooting-performance-faq)
+- [🤝 Contributing](#contributing)
+- [📄 License](#license)
+- [🔗 Related projects](#related-projects)
+- [🙏 Acknowledgments](#acknowledgments)
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick start
 
-### Installation
+### Install
 
 ```bash
-# NPM
+# npm
 npm install prisma-trpc-generator
 
-# Yarn  
+# yarn
 yarn add prisma-trpc-generator
 
-# PNPM
+# pnpm
 pnpm add prisma-trpc-generator
 ```
 
-### Setup
+### Minimal setup
 
-1. **Star this repo** 😉
-
-2. **Add the generator to your Prisma schema:**
+Add the generator to your Prisma schema and point to your JSON config file:
 
 ```prisma
 generator trpc {
-  provider                  = "prisma-trpc-generator"
-  output                    = "./generated"
-  withZod                   = true
-  withMiddleware            = true
-  withShield                = false
-  contextPath               = "../../../../src/context"
-  trpcOptionsPath           = "../../../../src/trpcOptions"
-  isGenerateSelect          = false
-  isGenerateInclude         = false
-  showModelNameInProcedure  = true
-  generateModelActions      = "findMany,findUnique,findFirst,create,createMany,update,updateMany,upsert,delete,deleteMany,aggregate,groupBy,count"
+  provider = "node ./lib/generator.js"
+  output   = "./prisma/generated"
+  config   = "./prisma/trpc.config.json"
 }
 ```
 
-3. **Enable strict mode in `tsconfig.json`** (required by Zod):
-
-```json
-{
-  "compilerOptions": {
-    "strict": true
-  }
-}
-```
-
-4. **Generate your tRPC routers:**
+Create `prisma/trpc.config.json` (see Feature guide for options), enable `"strict": true` in `tsconfig.json`, then generate:
 
 ```bash
 npx prisma generate
 ```
 
-## 📋 Generated Output
+---
+
+## ⚙️ Configuration
+
+As of v2.x, configuration is unified via a single JSON file. Your Prisma generator block should only specify `output` and `config`.
+
+Example `prisma/trpc.config.json`:
+
+```
+{
+  "withZod": true,
+  "withMiddleware": true,
+  "withShield": "./shield",
+  "contextPath": "./context",
+  "trpcOptionsPath": "./trpcOptions",
+  "postman": true,
+  "postmanExamples": "skeleton",
+  "openapi": true,
+  "withRequestId": false,
+  "withLogging": false,
+  "withServices": false
+}
+```
+
+Notes
+- The config path is resolved relative to the Prisma schema file.
+- Aliases `configPath` and `configFile` are also accepted.
+- If a config file is provided, any inline options in the generator block are ignored with a warning.
+- Inline options without a config file still work for now but are deprecated and will be removed in a future major release.
+
+---
+
+## 🔎 Feature guide
+
+Each feature is opt‑in via the JSON config. Below are concise how‑tos and the exact keys to set.
+
+### 1) Zod validation (inputs)
+- Key: `withZod: true`
+- Emits `schemas/` with Zod types for procedure inputs; routers wire `.input()` automatically.
+
+### 2) Middleware & Shield
+- Keys: `withMiddleware: boolean | string`, `withShield: boolean | string`
+- When `withMiddleware: true`, a basic middleware scaffold is included; or point to your own path string.
+- When `withShield` is truthy, the generator imports your `permissions` and exposes `shieldedProcedure` in `createRouter.ts`.
+
+### 3) Auth (session / JWT / custom)
+- Key: `auth: boolean | { strategy?: 'session'|'jwt'|'custom'; rolesField?: string; jwt?: {...}; session?: {...}; custom?: {...} }`
+- When enabled, generator emits:
+  - `routers/helpers/auth-strategy.ts` (stubs + default HS256 JWT verifier)
+  - `routers/helpers/auth.ts` with `ensureAuth` and `ensureRole`
+  - `createRouter.ts` wires `authMiddleware`, `publicProcedure`, `protectedProcedure`, `roleProcedure(roles)`
+- See `docs/usage/auth.md` for strategy hooks and examples.
+
+### 4) Request ID + logging
+- Keys: `withRequestId: boolean`, `withLogging: boolean`
+- Adds a small requestId middleware and optional structured log line around every procedure.
+- To propagate requestId into errors, return it in your `trpcOptions.errorFormatter`.
+
+### 5) OpenAPI (MVP)
+- Key: `openapi: boolean | { enabled?: boolean; title?: string; version?: string; baseUrl?: string; pathPrefix?: string; pathStyle?: 'slash'|'dot'; includeExamples?: boolean }`
+- Emits `openapi/openapi.json` and `routers/adapters/openapi.ts` with a tagged document.
+- Paths map to tRPC endpoints (POST) with a `{ input: {} }` request body schema and optional skeleton examples.
+
+### 6) Postman collection
+- Key: `postman: boolean | { endpoint?: string; envName?: string; fromOpenApi?: boolean; examples?: 'none'|'skeleton' }`
+- Emits `postman/collection.json`. When `fromOpenApi: true`, the collection is derived from OpenAPI.
+- Set `examples: 'skeleton'` to include sample bodies for common operations.
+
+### 7) DDD services (optional)
+- Keys: `withServices`, `serviceStyle`, `serviceDir`, `withListMethod`, `serviceImports`
+- Emits a BaseService and per‑model service stubs; routers can delegate to services when enabled.
+- Tenancy/soft‑delete helpers are included in the service layer if you choose to use it.
+
+### Migration from inline config
+1. Create `prisma/trpc.config.json` and move all previous inline keys into it.
+2. Replace keys in `generator trpc` so it only contains `output` and `config`.
+3. Run generation. If you still have inline keys, the generator will ignore them and warn.
+
+---
+
+## 📋 Generated output
+<details>
+<summary>Show generated layout</summary>
 
 For the following schema:
 
@@ -164,7 +209,7 @@ The generator creates:
 ```
 generated/
 ├── routers/
-│   ├── index.ts              # Main app router that combines all model routers  
+│   ├── index.ts              # Main app router combining all model routers
 │   ├── helpers/
 │   │   └── createRouter.ts   # Base router factory with middleware/shield setup
 │   ├── User.router.ts        # User CRUD operations
@@ -176,45 +221,15 @@ generated/
     └── index.ts              # Barrel exports
 ```
 
+</details>
 
-## ⚙️ Configuration Options
+---
 
-| Option | Description | Type | Default |
-|--------|-------------|------|---------|
-| `output` | Output directory for generated files | `string` | `./generated` |
-| `withZod` | Generate Zod validation schemas | `boolean` | `true` |
-| `withMiddleware` | Include global middleware support | `boolean \| string` | `true` |
-| `withShield` | Generate tRPC Shield permissions | `boolean \| string` | `false` |
-| `contextPath` | Path to your tRPC context file | `string` | `../../../../src/context` |
-| `trpcOptionsPath` | Path to tRPC instance options | `string` | `../../../../src/trpcOptions` |
-| `isGenerateSelect` | Enable Select schema generation | `boolean` | `false` |
-| `isGenerateInclude` | Enable Include schema generation | `boolean` | `false` |
-| `showModelNameInProcedure` | Include model name in procedure names | `boolean` | `true` |
-| `generateModelActions` | Specify which CRUD operations to generate | `string` | All operations |
+## 🛠️ Advanced usage
+<details>
+<summary>Show advanced usage examples</summary>
 
-### Example Configuration
-
-```prisma
-generator trpc {
-  provider                  = "prisma-trpc-generator"
-  output                    = "./src/server/api"
-  withZod                   = true
-  withMiddleware            = "../middleware"
-  withShield                = "../permissions"
-  contextPath               = "../context"
-  trpcOptionsPath           = "../trpcOptions"
-  isGenerateSelect          = true
-  isGenerateInclude         = true
-  showModelNameInProcedure  = false
-  generateModelActions      = "findMany,findUnique,create,update,delete"
-}
-```
-
-## 🔧 Advanced Usage
-
-### Custom Middleware
-
-Create a middleware file to run before all procedures:
+### Custom middleware
 
 ```ts
 // src/middleware.ts
@@ -241,21 +256,17 @@ export const loggingMiddleware = t.middleware(async ({ path, type, next }) => {
 
 ### Integration with tRPC Shield
 
-Set up permissions using the generated shield:
-
 ```ts
 // src/permissions.ts
-import { shield, rule, and, or } from 'trpc-shield';
+import { shield, rule, and } from 'trpc-shield';
 
-const isAuthenticated = rule()(async (parent, args, ctx) => {
-  return !!ctx.user;
-});
+const isAuthenticated = rule()(async (_parent, _args, ctx) => !!ctx.user);
 
-const isOwner = rule()(async (parent, args, ctx) => {
+const isOwner = rule()(async (_parent, args, ctx) => {
   if (!args.where?.id) return false;
   const post = await ctx.prisma.post.findUnique({
     where: { id: args.where.id },
-    select: { authorId: true }
+    select: { authorId: true },
   });
   return post?.authorId === ctx.user?.id;
 });
@@ -273,9 +284,7 @@ export const permissions = shield({
 });
 ```
 
-### Custom tRPC Options
-
-Configure your tRPC instance with custom options:
+### Custom tRPC options
 
 ```ts
 // src/trpcOptions.ts
@@ -299,11 +308,9 @@ export default {
 };
 ```
 
-## 🎨 Customizations
+### 🎨 Customizations
 
-### Skipping Models
-
-Hide specific models from generation:
+#### Skipping models
 
 ```prisma
 /// @@Gen.model(hide: true)
@@ -314,9 +321,7 @@ model InternalLog {
 }
 ```
 
-### Custom Context
-
-Ensure you have a properly typed context file:
+#### Custom context
 
 ```ts
 // src/context.ts
@@ -326,27 +331,18 @@ const prisma = new PrismaClient();
 
 export interface Context {
   prisma: PrismaClient;
-  user?: {
-    id: string;
-    email: string;
-    role: string;
-  };
+  user?: { id: string; email: string; role: string };
 }
 
 export const createContext = async ({ req }): Promise<Context> => {
-  // Add your authentication logic here
   const user = await getUserFromRequest(req);
-  
-  return {
-    prisma,
-    user,
-  };
+  return { prisma, user };
 };
 ```
 
-## 📚 Examples
+### 📚 Examples
 
-### Basic CRUD with Authentication
+#### Basic CRUD with authentication
 
 ```ts
 // src/server/routers/posts.ts
@@ -354,57 +350,31 @@ import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '../trpc';
 
 export const postsRouter = createTRPCRouter({
-  // Public read access
-  getAll: publicProcedure.query(({ ctx }) => {
-    return ctx.prisma.post.findMany({
+  getAll: publicProcedure.query(({ ctx }) =>
+    ctx.prisma.post.findMany({
       where: { published: true },
       include: { author: { select: { name: true } } },
-    });
-  }),
+    })
+  ),
 
-  // Protected create
   create: protectedProcedure
-    .input(z.object({
-      title: z.string().min(1),
-      content: z.string().optional(),
-    }))
-    .mutation(({ ctx, input }) => {
-      return ctx.prisma.post.create({
-        data: {
-          ...input,
-          authorId: ctx.user.id,
-        },
-      });
-    }),
+    .input(z.object({ title: z.string().min(1), content: z.string().optional() }))
+    .mutation(({ ctx, input }) =>
+      ctx.prisma.post.create({ data: { ...input, authorId: ctx.user.id } })
+    ),
 
-  // Protected update (owner only)
   update: protectedProcedure
-    .input(z.object({
-      id: z.number(),
-      title: z.string().min(1).optional(),
-      content: z.string().optional(),
-    }))
+    .input(z.object({ id: z.number(), title: z.string().min(1).optional(), content: z.string().optional() }))
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
-      
-      // Verify ownership
-      const post = await ctx.prisma.post.findFirst({
-        where: { id, authorId: ctx.user.id },
-      });
-      
-      if (!post) {
-        throw new TRPCError({ code: 'FORBIDDEN' });
-      }
-      
-      return ctx.prisma.post.update({
-        where: { id },
-        data,
-      });
+      const post = await ctx.prisma.post.findFirst({ where: { id, authorId: ctx.user.id } });
+      if (!post) throw new TRPCError({ code: 'FORBIDDEN' });
+      return ctx.prisma.post.update({ where: { id }, data });
     }),
 });
 ```
 
-### Integration with Next.js App Router
+#### Next.js App Router integration
 
 ```ts
 // src/app/api/trpc/[trpc]/route.ts
@@ -413,17 +383,12 @@ import { appRouter } from '@/server/api/root';
 import { createContext } from '@/server/api/context';
 
 const handler = (req: Request) =>
-  fetchRequestHandler({
-    endpoint: '/api/trpc',
-    req,
-    router: appRouter,
-    createContext,
-  });
+  fetchRequestHandler({ endpoint: '/api/trpc', req, router: appRouter, createContext });
 
 export { handler as GET, handler as POST };
 ```
 
-### Client-side Usage
+#### Client-side usage
 
 ```ts
 // src/lib/trpc.ts
@@ -432,13 +397,10 @@ import type { AppRouter } from '@/server/api/root';
 
 export const trpc = createTRPCReact<AppRouter>();
 
-// In your component
 const PostList = () => {
   const { data: posts, isLoading } = trpc.post.findMany.useQuery();
   const createPost = trpc.post.createOne.useMutation();
-
   if (isLoading) return <div>Loading...</div>;
-
   return (
     <div>
       {posts?.map((post) => (
@@ -449,159 +411,165 @@ const PostList = () => {
 };
 ```
 
-## 🔍 Troubleshooting
+</details>
 
-### Common Issues
+---
+
+## 🔍 Troubleshooting, performance, FAQ
+<details>
+<summary>Show troubleshooting, performance tips, and FAQ</summary>
+
+### Common issues
 
 **Error: Cannot find module '../context'**
-- Ensure your `contextPath` is correct relative to the output directory
-- Check that your context file exports a `Context` type
+- Ensure your `contextPath` is correct relative to the output directory.
+- Check that your context file exports a `Context` type.
 
 **TypeScript errors in generated routers**
-- Make sure all dependencies are installed and up to date
-- Verify your tRPC context is properly typed
-- Ensure `strict: true` is enabled in `tsconfig.json`
+- Ensure dependencies are installed and up to date.
+- Verify your tRPC context is properly typed.
+- Ensure `strict: true` is enabled in `tsconfig.json`.
 
 **Generated routers not updating**
-- Run `npx prisma generate` after modifying your schema
-- Check that the generator is properly configured in `schema.prisma`
-- Clear your build cache and regenerate
+- Run `npx prisma generate` after modifying your schema.
+- Check that the generator is properly configured in `schema.prisma`.
+- Clear your build cache and regenerate.
 
 **Zod validation errors**
-- Ensure you have Zod 4.0+ installed for compatibility
-- Check that your input schemas match your Prisma model types
+- Ensure Zod 4.0+ is installed.
+- Check that input schemas match your Prisma model types.
 
-### Performance Considerations
+### Performance considerations
 
-#### Large Schemas
-For projects with many models (50+), consider:
-- Using selective generation with model hiding
-- Splitting routers into multiple files
-- Implementing lazy loading for routers
+For large schemas (50+ models):
+- Use selective generation with model hiding.
+- Split routers into multiple files.
+- Consider lazy loading routers.
 
-#### Build Times
-To optimize build performance:
-- Add generated files to `.gitignore`
-- Use parallel builds where possible
-- Consider caching in CI/CD pipelines
+Build times:
+- Add generated files to `.gitignore`.
+- Use parallel builds where possible.
+- Cache dependencies in CI.
 
 ### FAQ
 
-**Q: Can I customize the generated router validation rules?**
-A: The routers are generated based on your Prisma schema constraints. Modify your Prisma model definitions to change validation rules.
+Q: Can I customize the generated router validation rules?
+A: Routers are generated based on your Prisma schema constraints; change your Prisma model definitions to affect validation.
 
-**Q: Does this work with Prisma Edge Runtime?**
-A: Yes, the generated routers are compatible with Prisma Edge Runtime.
+Q: Does this work with Prisma Edge Runtime?
+A: Yes.
 
-**Q: Can I use this with databases other than the officially supported ones?**
-A: The generator supports all Prisma-compatible databases. Custom databases should work if Prisma supports them.
+Q: What databases are supported?
+A: All Prisma‑compatible databases.
 
-**Q: How do I handle enum validation?**
-A: Enums are automatically converted to Zod enum schemas and included in the generated validation.
+Q: How are enums handled?
+A: Enums are converted to Zod enums and included in validation.
 
-**Q: Can I exclude certain fields from validation?**
-A: Use Prisma's `@ignore` directive or model-level hiding with `@@Gen.model(hide: true)`.
+Q: Can I exclude fields from validation?
+A: Use Prisma's `@ignore` or `@@Gen.model(hide: true)`.
 
-### Getting Help
+### Getting help
 
-- 🐛 **Bug Reports**: [Create a bug report](https://github.com/omar-dulaimi/prisma-trpc-generator/issues/new)
-- 💡 **Feature Requests**: [Request a feature](https://github.com/omar-dulaimi/prisma-trpc-generator/issues/new)
-- 💬 **Discussions**: [Join the discussion](https://github.com/omar-dulaimi/prisma-trpc-generator/discussions)
+- 🐛 Bug reports: https://github.com/omar-dulaimi/prisma-trpc-generator/issues/new
+- 💡 Feature requests: https://github.com/omar-dulaimi/prisma-trpc-generator/issues/new
+- 💬 Discussions: https://github.com/omar-dulaimi/prisma-trpc-generator/discussions
+
+</details>
+
+---
 
 ## 🤝 Contributing
+<details>
+<summary>Show contributing guide</summary>
 
-Contributions are welcome! Here's how you can help:
+### Development setup
 
-### Development Setup
-
-1. **Fork and clone the repository**
+1) Fork and clone the repository
 ```bash
 git clone https://github.com/your-username/prisma-trpc-generator.git
 cd prisma-trpc-generator
 ```
 
-2. **Install dependencies**
+2) Install dependencies
 ```bash
 npm install
 ```
 
-3. **Run the development build**
+3) Build/generate
 ```bash
 npm run generate
 ```
 
-4. **Run tests**
+4) Run tests
 ```bash
 npm test
 ```
 
 ### Testing
 
-We have comprehensive tests covering:
-- **Unit Tests**: Core transformation logic
-- **Integration Tests**: End-to-end router generation
-- **Multi-Provider Tests**: All database providers
-- **Performance Tests**: Large schema handling
+- Unit tests: core transformation logic
+- Integration tests: end‑to‑end router generation
+- Multi‑provider tests: all database providers
+- Performance tests: large schema handling
 
-Run specific test suites:
+Run specific test suites
 ```bash
-npm run test:basic           # Basic functionality
-npm run test:integration     # Integration testing  
-npm run test:coverage        # Coverage reports
-npm run test:comprehensive   # Full test suite
+npm test --silent
+npm run test:integration
+npm run test:coverage
+npm run test:comprehensive
 ```
 
-### Contribution Guidelines
+### Contribution guidelines
 
-1. **Create an issue** for bugs or feature requests
-2. **Follow the existing code style** (ESLint + Prettier)
-3. **Add tests** for new functionality
-4. **Update documentation** as needed
-5. **Submit a pull request** with a clear description
+1. Create an issue for bugs or feature requests.
+2. Follow the existing code style (ESLint + Prettier).
+3. Add tests for new functionality.
+4. Update documentation as needed.
+5. Submit a PR with a clear description.
 
-### Code Style
+### Code style
 
-We use ESLint and Prettier for consistent code formatting:
 ```bash
-npm run lint      # Check and fix linting issues
-npm run format    # Format code with Prettier
+npm run lint
+npm run format
 ```
 
-### Release Process
+### Release process
 
-This project uses semantic versioning and automated releases:
-- **Patch**: Bug fixes and small improvements
-- **Minor**: New features and enhancements  
-- **Major**: Breaking changes
+Semantic versioning
+- Patch: bug fixes and small improvements
+- Minor: new features and enhancements
+- Major: breaking changes
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🔗 Related Projects
-
-- [prisma-zod-generator](https://github.com/omar-dulaimi/prisma-zod-generator) - Generate Zod schemas from Prisma schema
-- [prisma-trpc-shield-generator](https://github.com/omar-dulaimi/prisma-trpc-shield-generator) - Generate tRPC Shield permissions from Prisma schema
-- [tRPC Shield](https://github.com/omar-dulaimi/trpc-shield) - Permission system for tRPC
-- [Prisma](https://github.com/prisma/prisma) - Database toolkit and ORM
-- [tRPC](https://trpc.io) - End-to-end typesafe APIs made easy
-
-## 🙏 Acknowledgments
-
-- [Prisma](https://github.com/prisma/prisma) - Modern database toolkit
-- [tRPC](https://trpc.io) - End-to-end typesafe APIs
-- [Zod](https://github.com/colinhacks/zod) - TypeScript-first schema validation
-- All our [contributors](https://github.com/omar-dulaimi/prisma-trpc-generator/graphs/contributors)
+</details>
 
 ---
 
-<div align="center">
-  <p>
-    <strong>Made with ❤️ by</strong>
-    <a href="https://github.com/omar-dulaimi">
-      <img src="https://img.shields.io/badge/Omar_Dulaimi-100000?style=for-the-badge&logo=github&logoColor=white" alt="Omar Dulaimi">
-    </a>
-  </p>
-  
-  <p><em>⚡ Accelerating tRPC development, one schema at a time</em></p>
-</div>
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Related projects
+
+- [prisma-zod-generator](https://github.com/omar-dulaimi/prisma-zod-generator) — Generate Zod schemas from Prisma schema
+- [prisma-trpc-shield-generator](https://github.com/omar-dulaimi/prisma-trpc-shield-generator) — Generate tRPC Shield permissions from Prisma schema
+- [tRPC Shield](https://github.com/omar-dulaimi/trpc-shield) — Permission system for tRPC
+- [Prisma](https://github.com/prisma/prisma) — Database toolkit and ORM
+- [tRPC](https://trpc.io) — End‑to‑end typesafe APIs made easy
+
+## 🙏 Acknowledgments
+
+- [Prisma](https://github.com/prisma/prisma) — Modern database toolkit
+- [tRPC](https://trpc.io) — End‑to‑end typesafe APIs
+- [Zod](https://github.com/colinhacks/zod) — TypeScript‑first schema validation
+- All [contributors](https://github.com/omar-dulaimi/prisma-trpc-generator/graphs/contributors)
+
+---
+
+<p align="center">
+  <strong>Made with ❤️ by</strong>
+  <a href="https://github.com/omar-dulaimi">Omar Dulaimi</a>
+  <br />
+  <em>⚡ Accelerating tRPC development, one schema at a time</em>
+</p>

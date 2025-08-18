@@ -5,9 +5,15 @@ npm-debug.log*
 prisma/generated
 prisma/shield
 generated
+prisma/dev.db
+prisma/schema.*.prisma
+prisma/trpc.config.*.json
 
 # Test generated files
 tests/generated/
+tests/.tmp/
+test-results.json
+test-report.html
 
 # IDE files
 .vscode/

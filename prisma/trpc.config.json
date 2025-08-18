@@ -1,0 +1,12 @@
+{
+  "isGenerateSelect": true,
+  "isGenerateInclude": true,
+  "withMiddleware": "./middleware",
+  "withShield": "./shield",
+  "contextPath": "./context",
+  "trpcOptionsPath": "./trpcOptions",
+  "auth": true,
+  "postman": true,
+  "postmanExamples": "skeleton",
+  "openapi": true
+}

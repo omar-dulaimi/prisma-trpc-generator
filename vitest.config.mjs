@@ -1,10 +1,10 @@
-// CommonJS Vitest config to avoid ESM require issues in some environments.
-/** @type {import('vitest').UserConfig} */
-module.exports = {
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    globalSetup: 'tests/global.setup.ts',
+  globalSetup: 'tests/global.setup.ts',
     include: ['tests/**/*.{test,spec}.ts'],
     exclude: [
       'node_modules',
@@ -69,4 +69,4 @@ module.exports = {
   esbuild: {
     target: 'node18',
   },
-};
+});

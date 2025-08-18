@@ -93,6 +93,15 @@ export function generateBaseRouter(
     options.schemaPath,
   )}';
   `);
+  // Re-export Context for downstream type-only imports from this helper module
+  sourceFile.addStatements(/* ts */ `
+  export type { Context } from '${getRelativePath(
+    outputDir,
+    config.contextPath,
+    true,
+    options.schemaPath,
+  )}';
+  `);
 
   if (config.trpcOptionsPath) {
     sourceFile.addStatements(/* ts */ `
@@ -110,6 +119,28 @@ export function generateBaseRouter(
     config.trpcOptionsPath ? 'trpcOptions' : ''
   });
   `);
+
+  // Request ID + simple logging middleware (optional)
+  if (config.withRequestId || config.withLogging) {
+    sourceFile.addStatements(/* ts */ `
+  const _rid = () =>
+    (Date.now().toString(36) + Math.random().toString(36).slice(2, 8)).toUpperCase();
+
+  export const requestIdMiddleware = t.middleware(async ({ ctx, next, path, type }) => {
+    const requestId = ctx.requestId ?? _rid();
+    const start = Date.now();
+    const result = await next({ ctx: { ...ctx, requestId } });
+    const ms = Date.now() - start;
+    ${
+      // Only log when withLogging
+      config.withLogging
+        ? `// eslint-disable-next-line no-console
+    console.log(JSON.stringify({ level: 'info', msg: 'trpc', requestId, path, type, ms }));`
+        : ''
+    }
+    return result;
+  });`);
+  }
 
   const middlewares = [];
 
@@ -152,8 +183,14 @@ export function generateBaseRouter(
     });
   }
 
-  sourceFile.addStatements(/* ts */ `
+  // Base public procedure
+  if (config.withRequestId || config.withLogging) {
+    sourceFile.addStatements(/* ts */ `
+    export const publicProcedure = t.procedure.use(requestIdMiddleware); `);
+  } else {
+    sourceFile.addStatements(/* ts */ `
     export const publicProcedure = t.procedure; `);
+  }
 
   if (middlewares.length > 0) {
     const procName = getProcedureName(config);
@@ -161,7 +198,9 @@ export function generateBaseRouter(
     middlewares.forEach((middleware, i) => {
       if (i === 0) {
         sourceFile.addStatements(/* ts */ `
-    export const ${procName} = t.procedure
+  export const ${procName} = t.procedure${
+    config.withRequestId || config.withLogging ? '.use(requestIdMiddleware)' : ''
+  }
       `);
       }
 
@@ -185,24 +224,35 @@ export function generateProcedure(
   baseOpType: string,
   config: Config,
 ) {
-  let input = `input${!config.withZod ? ' as any' : ''}`;
+  let input = 'input';
   const nameWithoutModel = name.replace(modelName as string, '');
   if (nameWithoutModel === 'groupBy' && config.withZod) {
     // Ensure 'orderBy' key exists in the argument type to satisfy Prisma's groupBy constraints
     input = '{ ...input, orderBy: input.orderBy }';
   }
   // For groupBy, pass the full input (schema aligns with Prisma.GroupByArgs)
-  sourceFile.addStatements(/* ts */ `${
+  const procHeader = `${
     config.showModelNameInProcedure ? name : nameWithoutModel
   }: ${getProcedureName(config)}
   ${config.withZod ? `.input(${typeName})` : ''}.${getProcedureTypeByOpName(
     baseOpType,
-  )}(async ({ ctx, input }) => {
+  )}`;
+
+  if (!config.withServices) {
+    sourceFile.addStatements(/* ts */ `${procHeader}(async ({ ctx, input }) => {
     const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
       modelName,
     )}.${opType === 'count' ? 'count' : opType.replace('One', '')}(${input});
     return ${name};
   }),`);
+  } else {
+    const methodName = opType === 'count' ? 'count' : opType.replace('One', '');
+    sourceFile.addStatements(/* ts */ `${procHeader}(async ({ ctx, input }) => {
+    const services = makeServices(ctx);
+    const ${name} = await services.${uncapitalizeFirstLetter(modelName)}.${methodName}(${input});
+    return ${name};
+  }),`);
+  }
 }
 
 export function generateRouterSchemaImports(
@@ -371,4 +421,50 @@ export function resolveModelsComments(
       }
     }
   }
+}
+
+export interface ModelGenConfig {
+  tenantKey?: string;
+  softDeleteKey?: string;
+  hide?: boolean;
+}
+
+export function getModelsGenConfig(models: ReadonlyArray<DMMF.Model>): Record<string, ModelGenConfig> {
+  const modelAttributeRegex = /(@@Gen\.)+([A-z])+(\()+(.+)+(\))+/;
+  const attributeNameRegex = /(?:\.)+([A-Za-z])+(?:\()+/;
+  const attributeArgsRegex = /(?:\()+([A-Za-z])+:+(.+)+(?:\))+/;
+  const result: Record<string, ModelGenConfig> = {};
+  for (const model of models) {
+    const cfg: ModelGenConfig = {};
+    if (model.documentation) {
+      const attribute = model.documentation?.match(modelAttributeRegex)?.[0];
+      const attributeName = attribute?.match(attributeNameRegex)?.[0]?.slice(1, -1);
+      if (attributeName === 'model') {
+        const rawAttributeArgs = attribute?.match(attributeArgsRegex)?.[0]?.slice(1, -1);
+        const parsed: Record<string, unknown> = {};
+        if (rawAttributeArgs) {
+          const parts = rawAttributeArgs
+            .split(':')
+            .map((it) => it.trim())
+            .map((part) => (part.startsWith('[') ? part : part.split(',')))
+            .flat()
+            .map((it) => it.trim());
+          for (let i = 0; i < parts.length; i += 2) {
+            const key = parts[i];
+            const value = parts[i + 1];
+            try {
+              parsed[key] = JSON.parse(value);
+            } catch {
+              // ignore malformed
+            }
+          }
+        }
+        if (typeof parsed.hide === 'boolean' && parsed.hide) cfg.hide = true;
+        if (typeof parsed.tenantKey === 'string') cfg.tenantKey = parsed.tenantKey;
+        if (typeof parsed.softDelete === 'string') cfg.softDeleteKey = parsed.softDelete;
+      }
+    }
+    result[model.name] = cfg;
+  }
+  return result;
 }

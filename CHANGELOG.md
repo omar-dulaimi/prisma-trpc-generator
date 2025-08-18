@@ -1,3 +1,10 @@
+## [2.2.0](https://github.com/omar-dulaimi/prisma-trpc-generator/compare/v2.1.2...v2.2.0) (2025-08-18)
+
+### 🚀 Features
+
+* **generator:** boolean-like config, new actions (create/updateManyAndReturn, count), schema import base and procedure mapping ([7a95b4b](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/7a95b4bf0553514f39c83fb966d12060b88379df))
+* **generator:** write Zod schemas to outputDir/schemas; provider-aware extra ops; shield default notice; output path resolution ([e0384cc](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/e0384cc093edec44cc3163912b56adeb4110a17c))
+
 ## [2.1.2](https://github.com/omar-dulaimi/prisma-trpc-generator/compare/v2.1.1...v2.1.2) (2025-08-07)
 
 ### 🐛 Bug Fixes

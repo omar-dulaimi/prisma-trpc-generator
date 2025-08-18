@@ -514,7 +514,7 @@ npm test
 
 Run specific test suites
 ```bash
-npm run test:basic
+npm test --silent
 npm run test:integration
 npm run test:coverage
 npm run test:comprehensive

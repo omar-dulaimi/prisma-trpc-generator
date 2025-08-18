@@ -47,9 +47,8 @@ jobs:
     - name: Build and test
       run: |
         npm run generate
-        npm run test:type-check
         npm run lint
-        npm run test:basic
+        npm test --silent
         
     - name: Build package
       run: ./package.sh

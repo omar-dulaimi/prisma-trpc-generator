@@ -4,14 +4,8 @@ generator client {
 
 generator trpc {
   provider          = "node ./lib/generator.js"
-  isGenerateSelect  = true
-  isGenerateInclude = true
-  withMiddleware    = "./middleware"
-  withShield        = "./shield"
-  contextPath       = "./context"
-  trpcOptionsPath   = "./trpcOptions"
-  postman           = "true"
-  postmanExamples   = "skeleton"
+  output            = "./generated"
+  config            = "./trpc.config.json"
 }
 
 datasource db {

@@ -7,6 +7,7 @@ export const createContext = ({ req, res }: CreateExpressContextOptions) => {
   const requestId = (req.headers['x-request-id'] as string | undefined) ?? rid();
   return {
     prisma,
+  req,
     user: null,
     requestId,
   };

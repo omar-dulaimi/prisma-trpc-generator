@@ -52,6 +52,9 @@ export const configSchema = z.object({
   contextPath: z.string().default('../../../../src/context'),
   // README default
   trpcOptionsPath: z.string().optional().default('../../../../src/trpcOptions'),
+  // Request ID + logging
+  withRequestId: booleanLike.optional().default(false),
+  withLogging: booleanLike.optional().default(false),
   // README options (currently not used in generation, but accepted)
   isGenerateSelect: booleanLike.optional().default(false),
   isGenerateInclude: booleanLike.optional().default(false),

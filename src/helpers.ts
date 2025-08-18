@@ -120,6 +120,28 @@ export function generateBaseRouter(
   });
   `);
 
+  // Request ID + simple logging middleware (optional)
+  if (config.withRequestId || config.withLogging) {
+    sourceFile.addStatements(/* ts */ `
+  const _rid = () =>
+    (Date.now().toString(36) + Math.random().toString(36).slice(2, 8)).toUpperCase();
+
+  export const requestIdMiddleware = t.middleware(async ({ ctx, next, path, type }) => {
+    const requestId = ctx.requestId ?? _rid();
+    const start = Date.now();
+    const result = await next({ ctx: { ...ctx, requestId } });
+    const ms = Date.now() - start;
+    ${
+      // Only log when withLogging
+      config.withLogging
+        ? `// eslint-disable-next-line no-console
+    console.log(JSON.stringify({ level: 'info', msg: 'trpc', requestId, path, type, ms }));`
+        : ''
+    }
+    return result;
+  });`);
+  }
+
   const middlewares = [];
 
   if (config.withMiddleware && typeof config.withMiddleware === 'boolean') {
@@ -161,8 +183,14 @@ export function generateBaseRouter(
     });
   }
 
-  sourceFile.addStatements(/* ts */ `
+  // Base public procedure
+  if (config.withRequestId || config.withLogging) {
+    sourceFile.addStatements(/* ts */ `
+    export const publicProcedure = t.procedure.use(requestIdMiddleware); `);
+  } else {
+    sourceFile.addStatements(/* ts */ `
     export const publicProcedure = t.procedure; `);
+  }
 
   if (middlewares.length > 0) {
     const procName = getProcedureName(config);
@@ -170,7 +198,9 @@ export function generateBaseRouter(
     middlewares.forEach((middleware, i) => {
       if (i === 0) {
         sourceFile.addStatements(/* ts */ `
-    export const ${procName} = t.procedure
+  export const ${procName} = t.procedure${
+    config.withRequestId || config.withLogging ? '.use(requestIdMiddleware)' : ''
+  }
       `);
       }
 

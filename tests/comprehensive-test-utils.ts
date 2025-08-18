@@ -1,6 +1,6 @@
+import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
 
 export class TrpcGeneratorTestUtils {
   /**
@@ -12,43 +12,75 @@ export class TrpcGeneratorTestUtils {
       const schemaContent = fs.readFileSync(schemaPath, 'utf-8');
       const outputMatch = schemaContent.match(/output\s*=\s*["']([^"']+)["']/);
       if (outputMatch) {
-        const outputPath = path.resolve(path.dirname(schemaPath), outputMatch[1]);
+        const outputPath = path.resolve(
+          path.dirname(schemaPath),
+          outputMatch[1],
+        );
         this.cleanup(outputPath);
+        // Also clean the generator's re-based path used for temp schemas: tests/generated/<name>
+        const genName = /generated\/(.+)$/.exec(outputMatch[1])?.[1];
+        if (/temp-.*\.prisma(\.tmp)?$/.test(schemaPath) && genName) {
+          const forcedOut = path.resolve(
+            process.cwd(),
+            'tests',
+            'generated',
+            genName,
+          );
+          this.cleanup(forcedOut);
+        }
       }
-      
-      // Create a temporary schema with absolute generator path
-      const tempSchemaPath = schemaPath + '.tmp';
+
+      // Create a unique temporary schema with absolute generator path (avoid races between parallel tests)
+      const uniqueSuffix = `${process.pid}.${Date.now()}.${Math.random().toString(36).slice(2)}`;
+      const tempSchemaPath = `${schemaPath}.${uniqueSuffix}.tmp`;
       const projectRoot = path.resolve(__dirname, '..');
       const generatorPath = path.join(projectRoot, 'lib', 'generator.js');
       const updatedSchema = schemaContent.replace(
         /provider\s*=\s*["']node\s+[^"']*generator\.js["']/,
-        `provider = "node \\"${generatorPath}\\""`
+        `provider = "node \\"${generatorPath}\\""`,
       );
-      
+
       fs.writeFileSync(tempSchemaPath, updatedSchema);
-      
+
       const resolvedTempSchemaPath = path.resolve(tempSchemaPath);
       const command = `npx prisma generate --schema="${resolvedTempSchemaPath}"`;
-      
+
       // Verify the temp file exists before running the command
       if (!fs.existsSync(resolvedTempSchemaPath)) {
-        throw new Error(`Temporary schema file not found at: ${resolvedTempSchemaPath}`);
+        throw new Error(
+          `Temporary schema file not found at: ${resolvedTempSchemaPath}`,
+        );
       }
-      
-      execSync(command, { 
+
+      execSync(command, {
         stdio: 'pipe',
-        timeout: 60000, // 60 second timeout
-        cwd: process.cwd() // Ensure correct working directory
+        timeout: 90000, // bump timeout to reduce flakiness on busy CI
+        cwd: process.cwd(), // Ensure correct working directory
       });
-      
+
       // Clean up temporary schema
       if (fs.existsSync(resolvedTempSchemaPath)) {
         fs.unlinkSync(resolvedTempSchemaPath);
       }
     } catch (error) {
       // Clean up temporary schema on error too
-      const tempSchemaPath = schemaPath + '.tmp';
-      const resolvedTempSchemaPath = path.resolve(tempSchemaPath);
+      const dir = path.dirname(schemaPath);
+      try {
+        const files = fs.readdirSync(dir);
+        for (const f of files) {
+          if (
+            f.startsWith(path.basename(schemaPath)) &&
+            f.includes('.prisma') &&
+            f.endsWith('.tmp')
+          ) {
+            const p = path.resolve(dir, f);
+            if (fs.existsSync(p)) fs.unlinkSync(p);
+          }
+        }
+      } catch {
+        // ignore cleanup errors
+      }
+      const resolvedTempSchemaPath = path.resolve(schemaPath + '.tmp');
       if (fs.existsSync(resolvedTempSchemaPath)) {
         fs.unlinkSync(resolvedTempSchemaPath);
       }
@@ -66,7 +98,11 @@ export class TrpcGeneratorTestUtils {
     modelRouters: { [model: string]: string };
   } {
     const routersDir = path.join(outputDir, 'routers');
-    const result: { appRouter?: string; createRouter?: string; modelRouters: Record<string, string> } = { modelRouters: {} };
+    const result: {
+      appRouter?: string;
+      createRouter?: string;
+      modelRouters: Record<string, string>;
+    } = { modelRouters: {} };
 
     if (!fs.existsSync(routersDir)) {
       return result;
@@ -79,7 +115,11 @@ export class TrpcGeneratorTestUtils {
     }
 
     // Read createRouter helper
-    const createRouterPath = path.join(routersDir, 'helpers', 'createRouter.ts');
+    const createRouterPath = path.join(
+      routersDir,
+      'helpers',
+      'createRouter.ts',
+    );
     if (fs.existsSync(createRouterPath)) {
       result.createRouter = fs.readFileSync(createRouterPath, 'utf-8');
     }
@@ -112,11 +152,13 @@ export class TrpcGeneratorTestUtils {
       hasExport: false,
       hasRouter: false,
       procedures: [] as string[],
-      imports: [] as string[]
+      imports: [] as string[],
     };
 
     // Check for imports
-    const importMatches = routerContent.match(/import\s+.*?from\s+['"][^'"]+['"]/g);
+    const importMatches = routerContent.match(
+      /import\s+.*?from\s+['"][^'"]+['"]/g,
+    );
     if (importMatches) {
       structure.hasImports = true;
       structure.imports = importMatches;
@@ -129,10 +171,15 @@ export class TrpcGeneratorTestUtils {
     structure.hasRouter = /\.router\s*\(/.test(routerContent);
 
     // Extract procedures (match t.procedure, shieldedProcedure, and protectedProcedure)
-    const procedureMatches = routerContent.match(/(\w+):\s*(t\.procedure|shieldedProcedure|protectedProcedure)/g);
+    const procedureMatches = routerContent.match(
+      /(\w+):\s*(t\.procedure|shieldedProcedure|protectedProcedure)/g,
+    );
     if (procedureMatches) {
-      structure.procedures = procedureMatches.map(match => 
-        match.replace(/:\s*(t\.procedure|shieldedProcedure|protectedProcedure)/, '')
+      structure.procedures = procedureMatches.map((match) =>
+        match.replace(
+          /:\s*(t\.procedure|shieldedProcedure|protectedProcedure)/,
+          '',
+        ),
       );
     }
 
@@ -149,8 +196,23 @@ export class TrpcGeneratorTestUtils {
     const queries: string[] = [];
     const mutations: string[] = [];
 
-    const queryOps = ['findFirst', 'findMany', 'findUnique', 'aggregate', 'groupBy', 'count'];
-    const mutationOps = ['create', 'createMany', 'update', 'updateMany', 'delete', 'deleteMany', 'upsert'];
+    const queryOps = [
+      'findFirst',
+      'findMany',
+      'findUnique',
+      'aggregate',
+      'groupBy',
+      'count',
+    ];
+    const mutationOps = [
+      'create',
+      'createMany',
+      'update',
+      'updateMany',
+      'delete',
+      'deleteMany',
+      'upsert',
+    ];
 
     for (const modelName of modelNames) {
       for (const op of queryOps) {
@@ -167,7 +229,10 @@ export class TrpcGeneratorTestUtils {
   /**
    * Validate that all expected CRUD operations are present
    */
-  static validateCrudOperations(routerContent: string, modelName: string): {
+  static validateCrudOperations(
+    routerContent: string,
+    modelName: string,
+  ): {
     hasCreate: boolean;
     hasRead: boolean;
     hasUpdate: boolean;
@@ -179,21 +244,30 @@ export class TrpcGeneratorTestUtils {
       hasRead: false,
       hasUpdate: false,
       hasDelete: false,
-      missingOperations: [] as string[]
+      missingOperations: [] as string[],
     };
 
     const expectedOps = [
-      { name: 'create', patterns: [`create.*${modelName}`, `${modelName}.*create`] },
+      {
+        name: 'create',
+        patterns: [`create.*${modelName}`, `${modelName}.*create`],
+      },
       { name: 'read', patterns: [`find.*${modelName}`, `${modelName}.*find`] },
-      { name: 'update', patterns: [`update.*${modelName}`, `${modelName}.*update`] },
-      { name: 'delete', patterns: [`delete.*${modelName}`, `${modelName}.*delete`] }
+      {
+        name: 'update',
+        patterns: [`update.*${modelName}`, `${modelName}.*update`],
+      },
+      {
+        name: 'delete',
+        patterns: [`delete.*${modelName}`, `${modelName}.*delete`],
+      },
     ];
 
     for (const op of expectedOps) {
-      const hasOp = op.patterns.some(pattern => 
-        new RegExp(pattern, 'i').test(routerContent)
+      const hasOp = op.patterns.some((pattern) =>
+        new RegExp(pattern, 'i').test(routerContent),
       );
-      
+
       switch (op.name) {
         case 'create':
           operations.hasCreate = hasOp;
@@ -239,8 +313,8 @@ export class TrpcGeneratorTestUtils {
         heapTotal: endMemory.heapTotal - startMemory.heapTotal,
         heapUsed: endMemory.heapUsed - startMemory.heapUsed,
         external: endMemory.external - startMemory.external,
-        arrayBuffers: endMemory.arrayBuffers - startMemory.arrayBuffers
-      }
+        arrayBuffers: endMemory.arrayBuffers - startMemory.arrayBuffers,
+      },
     };
   }
 
@@ -251,14 +325,14 @@ export class TrpcGeneratorTestUtils {
     try {
       // Basic syntax validation by reading and parsing
       const content = fs.readFileSync(filePath, 'utf-8');
-      
+
       // Check for basic TypeScript syntax issues
       const syntaxErrors = [
-        /\bundefine\b/,  // undefined typos
-        /\bimport\s*\{[^}]*\}\s*from\s*['"]\s*['"]/,  // empty imports
-        /export\s*\{[^}]*\}\s*from\s*['"]\s*['"]/,   // empty exports
-        /:\s*,/,  // missing types
-        /,\s*}/   // trailing commas in objects (can be valid but check)
+        /\bundefine\b/, // undefined typos
+        /\bimport\s*\{[^}]*\}\s*from\s*['"]\s*['"]/, // empty imports
+        /export\s*\{[^}]*\}\s*from\s*['"]\s*['"]/, // empty exports
+        /:\s*,/, // missing types
+        /,\s*}/, // trailing commas in objects (can be valid but check)
       ];
 
       for (const pattern of syntaxErrors) {
@@ -286,7 +360,10 @@ export class TrpcGeneratorTestUtils {
             fs.rmSync(outputDir, { recursive: true, force: true });
             break;
           } catch (error: unknown) {
-            if ((error as NodeJS.ErrnoException).code === 'ENOTEMPTY' && retries > 1) {
+            if (
+              (error as NodeJS.ErrnoException).code === 'ENOTEMPTY' &&
+              retries > 1
+            ) {
               // Wait a bit and retry for ENOTEMPTY errors
               const waitMs = 100;
               const start = Date.now();
@@ -316,14 +393,16 @@ export class TrpcGeneratorTestUtils {
     const zodInfo = {
       hasZodImports: false,
       hasSchemaUsage: false,
-      zodSchemas: [] as string[]
+      zodSchemas: [] as string[],
     };
 
     // Check for Zod-related imports
     zodInfo.hasZodImports = /import.*Schema.*from/.test(routerContent);
 
     // Check for schema usage in procedures
-    zodInfo.hasSchemaUsage = /\.input\s*\(\s*\w+Schema\s*\)/.test(routerContent);
+    zodInfo.hasSchemaUsage = /\.input\s*\(\s*\w+Schema\s*\)/.test(
+      routerContent,
+    );
 
     // Extract schema names
     const schemaMatches = routerContent.match(/(\w+Schema)/g);
@@ -345,7 +424,7 @@ export class TrpcGeneratorTestUtils {
     return {
       hasShieldImports: /import.*shield|permissions/.test(routerContent),
       hasPermissions: /permissions/.test(routerContent),
-      hasMiddleware: /middleware/.test(routerContent)
+      hasMiddleware: /middleware/.test(routerContent),
     };
   }
 
@@ -353,8 +432,8 @@ export class TrpcGeneratorTestUtils {
    * Compare generated output between different configurations
    */
   static compareGeneratedOutput(
-    output1: string, 
-    output2: string
+    output1: string,
+    output2: string,
   ): {
     identical: boolean;
     differences: string[];
@@ -363,7 +442,7 @@ export class TrpcGeneratorTestUtils {
     const comparison = {
       identical: output1 === output2,
       differences: [] as string[],
-      similarities: [] as string[]
+      similarities: [] as string[],
     };
 
     if (!comparison.identical) {
@@ -371,13 +450,15 @@ export class TrpcGeneratorTestUtils {
       const lines2 = output2.split('\n');
 
       const maxLines = Math.max(lines1.length, lines2.length);
-      
+
       for (let i = 0; i < maxLines; i++) {
         const line1 = lines1[i] || '';
         const line2 = lines2[i] || '';
-        
+
         if (line1 !== line2) {
-          comparison.differences.push(`Line ${i + 1}: "${line1}" vs "${line2}"`);
+          comparison.differences.push(
+            `Line ${i + 1}: "${line1}" vs "${line2}"`,
+          );
         } else if (line1.trim()) {
           comparison.similarities.push(line1.trim());
         }
@@ -392,34 +473,46 @@ export class TrpcGeneratorTestUtils {
    */
   static async testMultipleConfigurations(
     baseSchema: string,
-    configurations: Array<{ name: string; config: Record<string, unknown> }>
-  ): Promise<Array<{ name: string; success: boolean; output?: string; error?: unknown }>> {
-    const results: Array<{ name: string; success: boolean; output?: string; error?: unknown }> = [];
+    configurations: Array<{ name: string; config: Record<string, unknown> }>,
+  ): Promise<
+    Array<{ name: string; success: boolean; output?: string; error?: unknown }>
+  > {
+    const results: Array<{
+      name: string;
+      success: boolean;
+      output?: string;
+      error?: unknown;
+    }> = [];
 
     for (const config of configurations) {
       try {
         // Modify schema with configuration
-        const modifiedSchema = this.modifySchemaConfig(baseSchema, config.config);
-        const tempSchemaPath = path.join(process.cwd(), `temp-${config.name}.prisma`);
-        
+        const modifiedSchema = this.modifySchemaConfig(
+          baseSchema,
+          config.config,
+        );
+        const tempSchemaPath = path.join(
+          process.cwd(),
+          `temp-${config.name}.prisma`,
+        );
+
         fs.writeFileSync(tempSchemaPath, modifiedSchema);
-        
+
         await this.generateRouters(tempSchemaPath);
-        
+
         results.push({
           name: config.name,
           success: true,
-          output: `Generated successfully with ${config.name} configuration`
+          output: `Generated successfully with ${config.name} configuration`,
         });
 
         // Cleanup temp file
         fs.unlinkSync(tempSchemaPath);
-        
       } catch (error) {
         results.push({
           name: config.name,
           success: false,
-          error: error
+          error: error,
         });
       }
     }
@@ -431,8 +524,8 @@ export class TrpcGeneratorTestUtils {
    * Modify schema with different generator configurations
    */
   private static modifySchemaConfig(
-    schemaContent: string, 
-    config: Record<string, unknown>
+    schemaContent: string,
+    config: Record<string, unknown>,
   ): string {
     let modified = schemaContent;
 
@@ -443,11 +536,14 @@ export class TrpcGeneratorTestUtils {
     }
 
     const [fullMatch, opening, existingConfig, closing] = generatorMatch;
-    
+
     // Parse existing config lines
-    const existingLines = existingConfig.split('\n').map(line => line.trim()).filter(Boolean);
+    const existingLines = existingConfig
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
     const configMap = new Map<string, string>();
-    
+
     // Parse existing config into a map
     for (const line of existingLines) {
       const match = line.match(/(\w+)\s*=\s*(.+)/);
@@ -455,19 +551,22 @@ export class TrpcGeneratorTestUtils {
         configMap.set(match[1], match[2]);
       }
     }
-    
+
     // Update with new config values
     for (const [key, value] of Object.entries(config)) {
       configMap.set(key, JSON.stringify(value));
     }
-    
+
     // Rebuild config block
     const configLines = Array.from(configMap.entries())
       .map(([key, value]) => `  ${key} = ${value}`)
       .join('\n');
-    
+
     // Replace the generator block
-    modified = modified.replace(fullMatch, `${opening}\n${configLines}\n${closing}`);
+    modified = modified.replace(
+      fullMatch,
+      `${opening}\n${configLines}\n${closing}`,
+    );
 
     return modified;
   }

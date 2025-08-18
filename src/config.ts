@@ -1,30 +1,27 @@
 import { z } from 'zod';
 
-const configBoolean = z
-  .enum(['true', 'false'])
-  .transform((arg) => JSON.parse(arg));
+// Accept booleans and boolean-like strings
+const booleanLike = z
+  .union([z.boolean(), z.enum(['true', 'false'])])
+  .transform((val) => (typeof val === 'string' ? JSON.parse(val) : val));
 
-const configMiddleware = z.union([
-  configBoolean,
-  z.string().default('../../../../src/middleware'),
-]);
-
-const configShield = z.union([
-  configBoolean,
-  z.string().default('../../../../src/shield'),
-]);
+// Middleware/shield can be boolean (enabled/disabled) or a string path
+const configMiddleware = z.union([booleanLike, z.string()]);
+const configShield = z.union([booleanLike, z.string()]);
 
 // Define model actions directly since DMMF.ModelAction is not available at runtime
 const ModelAction = {
   findFirst: 'findFirst',
-  findFirstOrThrow: 'findFirstOrThrow', 
+  findFirstOrThrow: 'findFirstOrThrow',
   findMany: 'findMany',
   findUnique: 'findUnique',
   findUniqueOrThrow: 'findUniqueOrThrow',
   create: 'create',
   createMany: 'createMany',
+  createManyAndReturn: 'createManyAndReturn',
   update: 'update',
   updateMany: 'updateMany',
+  updateManyAndReturn: 'updateManyAndReturn',
   upsert: 'upsert',
   delete: 'delete',
   deleteMany: 'deleteMany',
@@ -32,18 +29,24 @@ const ModelAction = {
   groupBy: 'groupBy',
   count: 'count',
   findRaw: 'findRaw',
-  aggregateRaw: 'aggregateRaw'
+  aggregateRaw: 'aggregateRaw',
 } as const;
 
 const modelActionEnum = z.nativeEnum(ModelAction);
 
 export const configSchema = z.object({
-  withMiddleware: configMiddleware.default('true'),
-  withShield: configShield.default('true'),
-  withZod: configBoolean.default('true'),
+  // Defaults: middleware/shield on by default; can be a path string to custom impls
+  withMiddleware: configMiddleware.optional().default(true),
+  // README: default false
+  withShield: configShield.optional().default(false),
+  withZod: booleanLike.optional().default(true),
   contextPath: z.string().default('../../../../src/context'),
-  trpcOptionsPath: z.string().optional(),
-  showModelNameInProcedure: configBoolean.default('true'),
+  // README default
+  trpcOptionsPath: z.string().optional().default('../../../../src/trpcOptions'),
+  // README options (currently not used in generation, but accepted)
+  isGenerateSelect: booleanLike.optional().default(false),
+  isGenerateInclude: booleanLike.optional().default(false),
+  showModelNameInProcedure: booleanLike.optional().default(true),
   generateModelActions: z
     .string()
     .default(Object.values(ModelAction).join(','))

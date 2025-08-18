@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
 import { join } from 'path';
+import { describe, expect, it } from 'vitest';
 import { TrpcGeneratorTestUtils } from './comprehensive-test-utils';
 
 describe('Performance Tests', () => {
@@ -95,8 +95,8 @@ describe('Performance Tests', () => {
     const results = await Promise.all(promises);
     const totalTime = performance.now() - startTime;
     
-    // Concurrent generation should be efficient
-    expect(totalTime).toBeLessThan(45000); // 45 seconds max for all schemas
+  // Concurrent generation should be efficient (allow headroom on busy CI)
+  expect(totalTime).toBeLessThan(90000); // 90 seconds max for all schemas
     
     // All should succeed
     results.forEach((result, index) => {

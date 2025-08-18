@@ -1,9 +1,0 @@
-lib/**/*
-package/**/*
-tests/generated/**/*
-node_modules/**/*
-coverage/**/*
-*.config.js
-*.config.mjs
-vitest.config.js
-eslint.config.mjs

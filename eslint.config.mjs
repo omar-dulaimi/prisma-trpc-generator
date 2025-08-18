@@ -47,8 +47,10 @@ export default [
       'coverage/',
       'prisma/generated/',
       'tests/generated/',
+      'tests/schemas/generated/',
+      'tests/schemas/providers/generated/',
       '*.js',
-      '*.mjs'
+      '*.mjs',
     ],
   },
 ];

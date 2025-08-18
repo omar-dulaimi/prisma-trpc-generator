@@ -1,7 +1,7 @@
-import { describe, it, expect, afterAll } from 'vitest';
-import { join } from 'path';
-import { TrpcGeneratorTestUtils } from './comprehensive-test-utils';
 import fs from 'fs';
+import { join } from 'path';
+import { afterAll, describe, expect, it } from 'vitest';
+import { TrpcGeneratorTestUtils } from './comprehensive-test-utils';
 
 describe('Configuration Options Tests', () => {
   const baseSchemaPath = join(process.cwd(), 'tests', 'schemas', 'basic.prisma');
@@ -194,7 +194,9 @@ describe('Configuration Options Tests', () => {
   });
 
   it('should handle isGenerateSelect and isGenerateInclude options', async () => {
-    const schema = baseSchema.replace(
+    const schema = baseSchema
+      .replace('output      = "../generated/basic"', 'output      = "tests/generated/config/select-include"')
+      .replace(
       'withShield  = false',
       `withShield  = false
   isGenerateSelect         = true
@@ -207,13 +209,13 @@ describe('Configuration Options Tests', () => {
     try {
       await TrpcGeneratorTestUtils.generateRouters(tempSchemaPath);
       
-      const outputDir = join(process.cwd(), 'tests', 'generated', 'basic');
+  const outputDir = join(process.cwd(), 'tests', 'generated', 'config', 'select-include');
       // Verify generation succeeded by reading the generated routers
       TrpcGeneratorTestUtils.readGeneratedRouters(outputDir);
       
       // The basic schema generates these options successfully if no error was thrown
       // The presence of basic model schemas indicates the options were processed correctly
-      const schemasDir = join(process.cwd(), 'tests', 'generated', 'basic', 'schemas');
+  const schemasDir = join(outputDir, 'schemas');
       const hasGeneratedSchemas = fs.existsSync(schemasDir) && fs.readdirSync(schemasDir).length > 0;
       
       expect(hasGeneratedSchemas).toBe(true);
@@ -224,7 +226,9 @@ describe('Configuration Options Tests', () => {
 
   it('should handle custom contextPath', async () => {
     const customContextPath = "../custom-context";
-    const schema = baseSchema.replace(
+    const schema = baseSchema
+      .replace('output      = "../generated/basic"', 'output      = "tests/generated/config/custom-context"')
+      .replace(
       'contextPath = "../test-context"',
       `contextPath = "${customContextPath}"`
     );
@@ -235,7 +239,7 @@ describe('Configuration Options Tests', () => {
     try {
       await TrpcGeneratorTestUtils.generateRouters(tempSchemaPath);
       
-      const outputDir = join(process.cwd(), 'tests', 'generated', 'basic');
+  const outputDir = join(process.cwd(), 'tests', 'generated', 'config', 'custom-context');
       const routers = TrpcGeneratorTestUtils.readGeneratedRouters(outputDir);
       
       // Should generate successfully with custom context path (no errors thrown)

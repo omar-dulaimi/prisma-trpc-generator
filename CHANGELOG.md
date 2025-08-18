@@ -1,3 +1,16 @@
+## [2.3.0](https://github.com/omar-dulaimi/prisma-trpc-generator/compare/v2.2.1...v2.3.0) (2025-08-18)
+
+### 🚀 Features
+
+* auth presets, config wiring, and README restructure\n\n- add docs/usage/auth.md\n- add prisma/trpc.config.json\n- update prisma context and schema (requestId/tenancy hooks)\n- extend config and generator for new options\n- restructure README (clickable ToC, collapsible sections) ([0508436](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/05084368dff2a9053a05d5b826a8dbd827028768))
+* **postman:** skeleton example payloads in Postman collection with configurable examples flag (postman.examples/postmanExamples) ([994f7c6](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/994f7c69af732d46061ff917286fae5a0f2057e5))
+* **request-id:** add optional requestId middleware + logging (gated by config); add example ([9af267f](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/9af267f122a91ce4918cfb404aeedc5a8e80b153))
+* **services:** add tenancy + soft-delete codegen and examples ([e09abe9](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/e09abe9091037dadd01b90ba1c753505b7c62744))
+
+### 🐛 Bug Fixes
+
+* **lint:** remove no-useless-escape violations and stabilize scaffold regex escaping in prisma-generator; generation now passes lint ([d940e20](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/d940e20c3f5df0c892afe18ade40f8bcde04d1a8))
+
 ## [2.2.1](https://github.com/omar-dulaimi/prisma-trpc-generator/compare/v2.2.0...v2.2.1) (2025-08-18)
 
 ### 🐛 Bug Fixes

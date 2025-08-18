@@ -45,7 +45,6 @@
     "tslib": "^2.8.1"
   },
   "devDependencies": {
-    "vite": "6.3.5",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^10.0.1",
@@ -70,6 +69,7 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.20.4",
     "typescript": "^5.6.3",
+    "vite": "6.3.5",
     "vitest": "^3.2.4",
     "zod": "^4.0.17"
   },

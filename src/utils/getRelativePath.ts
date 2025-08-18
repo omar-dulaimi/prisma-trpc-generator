@@ -7,14 +7,18 @@ export default function getRelativePath(
   schemaPath?: string,
 ) {
   const fromPath = path.join(outputPath, 'routers', 'helpers');
-  let toPath = path.join(outputPath, filePath);
+  let toPath = filePath;
 
-  if (isOutsideOutputPath) {
-    const schemaPathSplit = schemaPath.split(path.sep);
-    const schemaPathWithoutFileAndExtension = schemaPathSplit
-      .slice(0, schemaPathSplit.length - 1)
-      .join(path.posix.sep);
-    toPath = path.join(schemaPathWithoutFileAndExtension, filePath);
+  // If an absolute path is provided, respect it directly
+  if (!path.isAbsolute(toPath)) {
+    // Resolve relative to output by default
+    toPath = path.join(outputPath, filePath);
+  }
+
+  if (isOutsideOutputPath && schemaPath) {
+    // Explicitly resolve relative imports (e.g., '../permissions', '../test-context')
+    const schemaDir = path.dirname(schemaPath);
+    toPath = path.isAbsolute(filePath) ? filePath : path.join(schemaDir, filePath);
   }
 
   const newPath = path

@@ -9,8 +9,8 @@ const getProcedureName = (config: Config) => {
   return config.withShield
     ? 'shieldedProcedure'
     : config.withMiddleware
-    ? 'protectedProcedure'
-    : 'publicProcedure';
+      ? 'protectedProcedure'
+      : 'publicProcedure';
 };
 
 export const generateCreateRouterImport = ({
@@ -51,11 +51,10 @@ export const generateShieldImport = (
   if (typeof value === 'string') {
     shieldPath = getRelativePath(outputDir, value, true, options.schemaPath);
   }
-
-  sourceFile.addImportDeclaration({
-    moduleSpecifier: shieldPath,
-    namedImports: ['permissions'],
-  });
+  // Emit using single quotes to align with test expectations
+  sourceFile.addStatements(/* ts */ `
+  import { permissions } from '${shieldPath}';
+  `);
 };
 
 export const generateMiddlewareImport = (
@@ -97,12 +96,12 @@ export function generateBaseRouter(
 
   if (config.trpcOptionsPath) {
     sourceFile.addStatements(/* ts */ `
-    import trpcOptions from '${getRelativePath(
-      outputDir,
-      config.trpcOptionsPath,
-      true,
-      options.schemaPath,
-    )}';
+      import trpcOptions from '${getRelativePath(
+        outputDir,
+        config.trpcOptionsPath,
+        true,
+        options.schemaPath,
+      )}';
     `);
   }
 
@@ -199,8 +198,8 @@ export function generateProcedure(
     baseOpType,
   )}(async ({ ctx, input }) => {
     const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
-    modelName,
-  )}.${opType.replace('One', '')}(${input});
+      modelName,
+    )}.${opType === 'count' ? 'count' : opType.replace('One', '')}(${input});
     return ${name};
   }),`);
 }
@@ -209,6 +208,7 @@ export function generateRouterSchemaImports(
   sourceFile: SourceFile,
   modelName: string,
   modelActions: string[],
+  schemasImportBase: string,
 ) {
   sourceFile.addStatements(
     /* ts */
@@ -216,7 +216,7 @@ export function generateRouterSchemaImports(
       // remove any duplicate import statements
       ...new Set(
         modelActions.map((opName) =>
-          getRouterSchemaImportByOpName(opName, modelName),
+          getRouterSchemaImportByOpName(opName, modelName, schemasImportBase),
         ),
       ),
     ].join('\n'),
@@ -226,13 +226,18 @@ export function generateRouterSchemaImports(
 export const getRouterSchemaImportByOpName = (
   opName: string,
   modelName: string,
+  schemasImportBase: string,
 ) => {
   const opType = opName.replace('OrThrow', '');
   const inputType = getInputTypeByOpName(opType, modelName);
+  if (!inputType) return '';
 
-  return inputType
-    ? `import { ${inputType} } from "../schemas/${opType}${modelName}.schema"; `
-    : '';
+  // Determine the actual schema filename prefix for this op
+  // Most ops match opType, but some reuse other inputs
+  let fileOp = opType;
+  if (opType === 'count') fileOp = 'findMany';
+
+  return `import { ${inputType} } from "${schemasImportBase}/${fileOp}${modelName}.schema"; `;
 };
 
 export const getInputTypeByOpName = (opName: string, modelName: string) => {
@@ -256,6 +261,9 @@ export const getInputTypeByOpName = (opName: string, modelName: string) => {
     case 'createMany':
       inputType = `${modelName}CreateManySchema`;
       break;
+    case 'createManyAndReturn':
+      inputType = `${modelName}CreateManyAndReturnSchema`;
+      break;
     case 'deleteOne':
       inputType = `${modelName}DeleteOneSchema`;
       break;
@@ -267,6 +275,9 @@ export const getInputTypeByOpName = (opName: string, modelName: string) => {
       break;
     case 'updateMany':
       inputType = `${modelName}UpdateManySchema`;
+      break;
+    case 'updateManyAndReturn':
+      inputType = `${modelName}UpdateManyAndReturnSchema`;
       break;
     case 'upsertOne':
       inputType = `${modelName}UpsertSchema`;
@@ -280,8 +291,12 @@ export const getInputTypeByOpName = (opName: string, modelName: string) => {
     case 'groupBy':
       inputType = `${modelName}GroupBySchema`;
       break;
+    case 'count':
+      // Reuse FindMany args for count
+      inputType = `${modelName}FindManySchema`;
+      break;
     default:
-      // Fallback for unknown operation types
+    // Fallback for unknown operation types
   }
   return inputType;
 };
@@ -296,19 +311,22 @@ export const getProcedureTypeByOpName = (opName: string) => {
     case 'aggregate':
     case 'aggregateRaw':
     case 'groupBy':
+    case 'count':
       procType = 'query';
       break;
     case 'createOne':
     case 'createMany':
+    case 'createManyAndReturn':
     case 'deleteOne':
     case 'updateOne':
     case 'deleteMany':
     case 'updateMany':
+    case 'updateManyAndReturn':
     case 'upsertOne':
       procType = 'mutation';
       break;
     default:
-      // Fallback for unknown operation types
+    // Fallback for unknown operation types
   }
   return procType;
 };

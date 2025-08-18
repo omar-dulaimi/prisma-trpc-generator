@@ -41,3 +41,5 @@ coverage/
 # Build artifacts
 dist/
 build/
+tests/generated
+temp-*

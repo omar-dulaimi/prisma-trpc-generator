@@ -34,6 +34,15 @@ const ModelAction = {
 
 const modelActionEnum = z.nativeEnum(ModelAction);
 
+// Service layer configuration (opt-in)
+const serviceStyleEnum = z.enum(['class', 'factory', 'plain']);
+const additionalImportSpec = z.object({
+  from: z.string(),
+  names: z.array(z.string()).optional(),
+  default: z.string().optional(),
+  namespace: z.string().optional(),
+});
+
 export const configSchema = z.object({
   // Defaults: middleware/shield on by default; can be a path string to custom impls
   withMiddleware: configMiddleware.optional().default(true),
@@ -55,6 +64,12 @@ export const configSchema = z.object({
         .split(',')
         .map((action) => modelActionEnum.parse(action.trim()));
     }),
+  // Service layer (optional)
+  withServices: booleanLike.optional().default(false),
+  serviceStyle: serviceStyleEnum.optional().default('class'),
+  serviceDir: z.string().optional().default('services'),
+  withListMethod: booleanLike.optional().default(true),
+  serviceImports: z.array(additionalImportSpec).optional().default([]),
 });
 
 export type Config = z.infer<typeof configSchema>;

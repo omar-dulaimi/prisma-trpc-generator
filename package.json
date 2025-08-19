@@ -13,12 +13,14 @@
     "generate": "tsc && npx prisma generate",
     "package:publish": "./package.sh && cd package && npm publish",
     "lint": "eslint src/ --fix",
-    "format": "prettier --write src/",
+    "lint:all": "eslint . --fix",
+    "format": "prettier --write .",
     "prerelease": "npm run generate && npm run lint",
     "test": "vitest run",
     "semantic-release": "semantic-release",
     "ci:test": "echo 'tests are temporarily disabled'",
-    "ci:build": "npm run generate"
+    "ci:build": "npm run generate",
+    "prepare": "husky"
   },
   "author": {
     "name": "Omar Dulaimi",
@@ -45,6 +47,7 @@
     "tslib": "^2.8.1"
   },
   "devDependencies": {
+    "husky": "^9.0.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^10.0.1",

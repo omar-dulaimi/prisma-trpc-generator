@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Pre-push: format and lint the project while ignoring generated directories
+
+echo "Running Prettier (repo-scoped)..."
+npm run --silent format || exit 1
+
+echo "Running ESLint (src only)..."
+npm run --silent lint || exit 1
+
+# Optionally run typecheck fast (noEmit)
+# echo "Typechecking..."
+# npx tsc -p tsconfig.json --noEmit
+
+exit 0

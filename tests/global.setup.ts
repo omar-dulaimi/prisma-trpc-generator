@@ -4,7 +4,9 @@ import path from 'node:path';
 function rimrafSafe(dir: string) {
   try {
     fs.rmSync(dir, { recursive: true, force: true });
-  } catch {}
+  } catch {
+    // noop
+  }
 }
 
 export default async function () {
@@ -22,10 +24,14 @@ export default async function () {
         ) {
           try {
             fs.rmSync(path.join(prismaDir, ent.name), { force: true });
-          } catch {}
+          } catch {
+            // noop
+          }
         }
       }
-    } catch {}
+    } catch {
+      // noop
+    }
   };
   // Clean before tests start
   rimrafSafe(tmpDir);

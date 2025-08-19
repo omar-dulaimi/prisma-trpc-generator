@@ -5,6 +5,7 @@ import path from 'path';
 import pluralize from 'pluralize';
 import { generate as PrismaTrpcShieldGenerator } from 'prisma-trpc-shield-generator/lib/prisma-generator';
 import { generate as PrismaZodGenerator } from 'prisma-zod-generator/lib/prisma-generator';
+import type { Config } from './config';
 import { configSchema } from './config';
 import {
   generateBaseRouter,
@@ -195,14 +196,14 @@ export async function generate(options: GeneratorOptions) {
   generateBaseRouter(createRouter, config, options);
 
   // Auth: emit helpers and export protected/role procedures when enabled
-  if (config.auth && config.auth !== (false as any)) {
+  if (config.auth !== false) {
     const rolesField =
-      typeof config.auth === 'object' && 'rolesField' in config.auth
-        ? (config.auth as any).rolesField
+      typeof config.auth === 'object'
+        ? (config.auth.rolesField ?? 'role')
         : 'role';
     const strategy =
-      typeof config.auth === 'object' && 'strategy' in config.auth
-        ? (config.auth as any).strategy
+      typeof config.auth === 'object'
+        ? (config.auth.strategy ?? 'session')
         : 'session';
     const strategiesDir = path.resolve(outputDir, 'routers', 'helpers');
     await fs.mkdir(strategiesDir, { recursive: true });
@@ -215,9 +216,17 @@ export async function generate(options: GeneratorOptions) {
     } catch {
       await fs.writeFile(strategyFile, strategyScaffold, 'utf8');
     }
-    const jwtCfg = (config as any).auth?.jwt || {};
-    const sessionCfg = (config as any).auth?.session || {};
-    const customCfg = (config as any).auth?.custom || {};
+    type AuthObject = Exclude<Config['auth'], boolean>;
+    const authObj: AuthObject | null =
+      typeof config.auth === 'object' && config.auth !== null
+        ? config.auth
+        : null;
+    type JwtCfg = NonNullable<NonNullable<AuthObject>['jwt']>;
+    type SessionCfg = NonNullable<NonNullable<AuthObject>['session']>;
+    type CustomCfg = NonNullable<NonNullable<AuthObject>['custom']>;
+    const jwtCfg: Partial<JwtCfg> = authObj?.jwt ?? {};
+    const sessionCfg: Partial<SessionCfg> = authObj?.session ?? {};
+    const customCfg: Partial<CustomCfg> = authObj?.custom ?? {};
     const rel = (p: string | undefined) =>
       p
         ? getRelativePath(
@@ -430,11 +439,8 @@ import type { Context } from '${contextImportFromServices}';
         ];
         for (const m of serviceMethods) {
           const op = toSchemaOp(m);
-          const line = getRouterSchemaImportByOpName(
-            op,
-            model.name,
-            servicesSchemasImportBase!,
-          );
+          const base = servicesSchemasImportBase ?? '';
+          const line = getRouterSchemaImportByOpName(op, model.name, base);
           if (line) importLines.add(line);
         }
       }
@@ -862,11 +868,18 @@ import { makeServices } from "${rel.startsWith('.') ? rel : `./${rel}`}";
   await project.save();
 
   // Reserve variable to reuse the built OpenAPI document for Postman-from-OpenAPI
-  let lastOpenApi: any | null = null;
+  type OpenApiDoc = {
+    openapi: '3.0.3';
+    info: { title: string; version: string };
+    servers: ReadonlyArray<{ url: string }> | Array<{ url: string }>;
+    paths: Record<string, unknown>;
+    tags: ReadonlyArray<{ name: string }> | Array<{ name: string }>;
+  } | null;
+  let lastOpenApi: OpenApiDoc = null;
 
   // OpenAPI document
-  const openapiOpt = config.openapi as any;
-  const openapiEnabled = !!openapiOpt && openapiOpt !== (false as any);
+  const openapiOpt = config.openapi;
+  const openapiEnabled = !!openapiOpt && openapiOpt !== false;
   if (openapiEnabled) {
     const enabled =
       typeof openapiOpt === 'object' && 'enabled' in openapiOpt
@@ -876,29 +889,30 @@ import { makeServices } from "${rel.startsWith('.') ? rel : `./${rel}`}";
       const oaTitle =
         (typeof openapiOpt === 'object' && 'title' in openapiOpt
           ? openapiOpt.title
-          : (config as any).openapiTitle) || 'Prisma tRPC API';
+          : config.openapiTitle) || 'Prisma tRPC API';
       const oaVersion =
         (typeof openapiOpt === 'object' && 'version' in openapiOpt
           ? openapiOpt.version
-          : (config as any).openapiVersion) || '1.0.0';
+          : config.openapiVersion) || '1.0.0';
       const baseUrl =
         (typeof openapiOpt === 'object' && 'baseUrl' in openapiOpt
           ? openapiOpt.baseUrl
-          : (config as any).openapiBaseUrl) || 'http://localhost:3000';
+          : config.openapiBaseUrl) || 'http://localhost:3000';
       const pathPrefix =
         (typeof openapiOpt === 'object' && 'pathPrefix' in openapiOpt
           ? openapiOpt.pathPrefix
-          : (config as any).openapiPathPrefix) || 'trpc';
+          : config.openapiPathPrefix) || 'trpc';
       const pathStyle: 'slash' | 'dot' =
         (typeof openapiOpt === 'object' && 'pathStyle' in openapiOpt
           ? openapiOpt.pathStyle
-          : (config as any).openapiPathStyle) || 'slash';
+          : (config.openapiPathStyle as 'slash' | 'dot' | undefined)) ||
+        'slash';
       const includeExamples =
         typeof openapiOpt === 'object' && 'includeExamples' in openapiOpt
           ? !!openapiOpt.includeExamples
-          : ((config as any).openapiIncludeExamples ?? true);
+          : (config.openapiIncludeExamples ?? true);
 
-      const paths: Record<string, any> = {};
+      const paths: Record<string, unknown> = {};
 
       // Helpers (duplicated minimally from Postman section to avoid hoisting large blocks)
       const getModelByName = (name: string) =>
@@ -908,7 +922,7 @@ import { makeServices } from "${rel.startsWith('.') ? rel : `./${rel}`}";
         const idField =
           model?.fields.find((f) => f.isId) ||
           model?.fields.find((f) => f.isUnique);
-        if (!idField) return {} as any;
+        if (!idField) return {} as Record<string, unknown>;
         const sample =
           idField.type === 'Int' || idField.type === 'BigInt'
             ? 1
@@ -917,11 +931,11 @@ import { makeServices } from "${rel.startsWith('.') ? rel : `./${rel}`}";
               : idField.type === 'DateTime'
                 ? new Date().toISOString()
                 : 1;
-        return { [idField.name]: sample } as any;
+        return { [idField.name]: sample } as Record<string, unknown>;
       };
       const sampleScalar = (
         field: (typeof models)[number]['fields'][number],
-      ): any => {
+      ): unknown => {
         if (field.isList) return [];
         switch (field.type) {
           case 'Int':
@@ -944,7 +958,7 @@ import { makeServices } from "${rel.startsWith('.') ? rel : `./${rel}`}";
         const model = getModelByName(m);
         if (!model) return {};
         const cfg = modelGenConfig[model.name] || {};
-        const data: any = {};
+        const data: Record<string, unknown> = {};
         for (const f of model.fields) {
           if (f.isId && f.hasDefaultValue) continue;
           if (f.isUpdatedAt) continue;
@@ -960,7 +974,7 @@ import { makeServices } from "${rel.startsWith('.') ? rel : `./${rel}`}";
         const model = getModelByName(m);
         if (!model) return {};
         const cfg = modelGenConfig[model.name] || {};
-        const data: any = {};
+        const data: Record<string, unknown> = {};
         for (const f of model.fields) {
           if (f.relationName) continue;
           if (f.isId) continue;
@@ -989,7 +1003,10 @@ import { makeServices } from "${rel.startsWith('.') ? rel : `./${rel}`}";
       };
 
       for (const modelOperation of modelOperations) {
-        const { model, ...operations } = modelOperation as any;
+        const { model, ...operations } = modelOperation as unknown as {
+          model: string;
+          [k: string]: unknown;
+        };
         if (hiddenModels.includes(model)) continue;
         const reportedOps = Object.keys(operations);
         const extraOps = [
@@ -1019,8 +1036,18 @@ import { makeServices } from "${rel.startsWith('.') ? rel : `./${rel}`}";
               ? `/${pathPrefix}/${model.toLowerCase()}/${normalized}`
               : `/${pathPrefix}/${model.toLowerCase()}.${normalized}`;
 
-          // Build skeleton input
-          let input: any = {};
+          // Build skeleton input (loose structure for examples)
+          type InputExample = {
+            where?: Record<string, unknown>;
+            data?: Record<string, unknown> | Array<Record<string, unknown>>;
+            update?: Record<string, unknown>;
+            create?: Record<string, unknown>;
+            by?: string[];
+            orderBy?: Array<Record<string, 'asc' | 'desc'>>;
+            _count?: { _all?: boolean };
+            take?: number;
+          };
+          let input: InputExample = {};
           const isUnique = [
             'findUnique',
             'findUniqueOrThrow',
@@ -1065,7 +1092,7 @@ import { makeServices } from "${rel.startsWith('.') ? rel : `./${rel}`}";
               by: [byField],
               orderBy: [{ [byField]: 'asc' }],
               _count: { _all: true },
-            } as any;
+            } as Record<string, unknown>;
           } else if (isCreate) {
             input =
               normalized === 'create'
@@ -1077,17 +1104,18 @@ import { makeServices } from "${rel.startsWith('.') ? rel : `./${rel}`}";
             input = { where: {} };
           }
           if (cfg.tenantKey && input?.where && input.where[cfg.tenantKey])
-            delete input.where[cfg.tenantKey];
+            delete (input.where as Record<string, unknown>)[cfg.tenantKey];
           if (
             cfg.softDeleteKey &&
             input?.where &&
             input.where[cfg.softDeleteKey]
           )
-            delete input.where[cfg.softDeleteKey];
+            delete (input.where as Record<string, unknown>)[cfg.softDeleteKey];
 
           // OpenAPI: use POST for all procedures (safe default for tRPC)
-          paths[trpcPath] = paths[trpcPath] || {};
-          paths[trpcPath]['post'] = {
+          const pathNode = (paths[trpcPath] as { [k: string]: unknown }) || {};
+          (paths as Record<string, unknown>)[trpcPath] = pathNode;
+          (pathNode as Record<string, unknown>)['post'] = {
             tags: [model],
             operationId: `${model}.${opType}`,
             requestBody: {
@@ -1148,30 +1176,47 @@ export const openApiDocument = ${JSON.stringify(openapi, null, 2)} as const;
 
   // Postman collection (after OpenAPI so we can optionally derive from it)
   const postmanOpt = config.postman;
-  const postmanEnabled = !!postmanOpt && postmanOpt !== (false as any);
+  const postmanEnabled = !!postmanOpt && postmanOpt !== false;
   if (postmanEnabled) {
     const postmanDir = path.resolve(outputDir, 'postman');
     await fs.mkdir(postmanDir, { recursive: true });
     const endpoint =
       typeof postmanOpt === 'object' && 'endpoint' in postmanOpt
-        ? (postmanOpt as any).endpoint
+        ? postmanOpt.endpoint
         : 'http://localhost:3000/trpc';
     const envName =
       typeof postmanOpt === 'object' && 'envName' in postmanOpt
-        ? (postmanOpt as any).envName
+        ? postmanOpt.envName
         : 'TRPC_ENDPOINT';
     const fromOpenApi =
       typeof postmanOpt === 'object' && 'fromOpenApi' in postmanOpt
-        ? !!(postmanOpt as any).fromOpenApi
-        : !!(config as any).postmanFromOpenApi;
-    let items: any[] = [];
+        ? !!postmanOpt.fromOpenApi
+        : !!config.postmanFromOpenApi;
+    let items: Array<unknown> = [];
 
     if (fromOpenApi && lastOpenApi) {
       // Transform OpenAPI to Postman collection
-      const tagToFolder: Record<string, { name: string; item: any[] }> = {};
-      const paths = (lastOpenApi as any).paths || {};
+      const tagToFolder: Record<
+        string,
+        { name: string; item: Array<unknown> }
+      > = {};
+      const paths = (
+        lastOpenApi && 'paths' in lastOpenApi ? lastOpenApi.paths : {}
+  ) as Record<string, unknown>;
       for (const [p, methods] of Object.entries(paths)) {
-        const postOp = (methods as any).post;
+        const postOp = (methods as { post?: unknown }).post as
+          | {
+              operationId?: string;
+              tags?: string[];
+              requestBody?: {
+                content?: {
+                  'application/json'?: {
+                    examples?: { skeleton?: { value?: unknown } };
+                  };
+                };
+              };
+            }
+          | undefined;
         if (!postOp) continue;
         const tags: string[] =
           Array.isArray(postOp.tags) && postOp.tags.length
@@ -1182,7 +1227,7 @@ export const openApiDocument = ${JSON.stringify(openapi, null, 2)} as const;
           tagToFolder[folderTag] = { name: folderTag, item: [] };
         const operationId: string = postOp.operationId || p;
         // Prefer the skeleton example from OpenAPI if available
-        let input = {} as any;
+        let input: unknown = {};
         const rb = postOp.requestBody?.content?.['application/json'];
         const example = rb?.examples?.skeleton?.value;
         if (example) input = example;
@@ -1210,15 +1255,16 @@ export const openApiDocument = ${JSON.stringify(openapi, null, 2)} as const;
       // Fallback: build from procedures with optional skeleton examples
       let examplesMode: 'none' | 'skeleton' = 'none';
       if (typeof postmanOpt === 'object' && 'examples' in postmanOpt) {
-        examplesMode = ((postmanOpt as any).examples ?? 'none') as
-          | 'none'
-          | 'skeleton';
+        examplesMode = (postmanOpt.examples ?? 'none') as 'none' | 'skeleton';
       } else if (config.postmanExamples) {
         examplesMode = config.postmanExamples as 'none' | 'skeleton';
       }
 
       for (const modelOperation of modelOperations) {
-        const { model, ...operations } = modelOperation as any;
+        const { model, ...operations } = modelOperation as unknown as {
+          model: string;
+          [k: string]: unknown;
+        };
         if (hiddenModels.includes(model)) continue;
         const reportedOps = Object.keys(operations);
         const extraOps = [
@@ -1240,7 +1286,10 @@ export const openApiDocument = ${JSON.stringify(openapi, null, 2)} as const;
         });
         if (!modelActions.length) continue;
 
-        const folder: any = { name: model, item: [] as any[] };
+        const folder: { name: string; item: Array<unknown> } = {
+          name: model,
+          item: [],
+        };
         const cfg = modelGenConfig[model] || {};
         // Minimal local helpers reused (duplicated for brevity)
         const getModelByName = (name: string) =>
@@ -1250,7 +1299,7 @@ export const openApiDocument = ${JSON.stringify(openapi, null, 2)} as const;
           const idField =
             mo?.fields.find((f) => f.isId) ||
             mo?.fields.find((f) => f.isUnique);
-          if (!idField) return {} as any;
+          if (!idField) return {} as Record<string, unknown>;
           const sample =
             idField.type === 'Int' || idField.type === 'BigInt'
               ? 1
@@ -1259,11 +1308,11 @@ export const openApiDocument = ${JSON.stringify(openapi, null, 2)} as const;
                 : idField.type === 'DateTime'
                   ? new Date().toISOString()
                   : 1;
-          return { [idField.name]: sample } as any;
+          return { [idField.name]: sample } as Record<string, unknown>;
         };
         const sampleScalar = (
           field: (typeof models)[number]['fields'][number],
-        ): any => {
+        ): unknown => {
           if (field.isList) return [];
           switch (field.type) {
             case 'Int':
@@ -1285,20 +1334,22 @@ export const openApiDocument = ${JSON.stringify(openapi, null, 2)} as const;
         const buildCreateData = (m: string) => {
           const mo = getModelByName(m);
           if (!mo) return {};
-          const data: any = {};
+          const data: Record<string, unknown> = {};
           for (const f of mo.fields) {
             if (f.isId && f.hasDefaultValue) continue;
             if (f.isUpdatedAt) continue;
             if (f.isRequired && !f.relationName) data[f.name] = sampleScalar(f);
           }
-          if (cfg.tenantKey) delete (data as any)[cfg.tenantKey];
-          if (cfg.softDeleteKey) delete (data as any)[cfg.softDeleteKey];
+          if (cfg.tenantKey)
+            delete (data as Record<string, unknown>)[cfg.tenantKey];
+          if (cfg.softDeleteKey)
+            delete (data as Record<string, unknown>)[cfg.softDeleteKey];
           return data;
         };
         const buildUpdateData = (m: string) => {
           const mo = getModelByName(m);
           if (!mo) return {};
-          const data: any = {};
+          const data: Record<string, unknown> = {};
           for (const f of mo.fields) {
             if (f.relationName || f.isId || f.isUpdatedAt) continue;
             if (cfg.tenantKey && f.name === cfg.tenantKey) continue;
@@ -1312,7 +1363,7 @@ export const openApiDocument = ${JSON.stringify(openapi, null, 2)} as const;
         for (const opType of modelActions) {
           const trpcPath = `${model.toLowerCase()}.${opType.replace('One', '')}`;
           const name = `${model}.${opType}`;
-          let input: any = {};
+          let input: Record<string, unknown> = {};
           if (examplesMode === 'skeleton') {
             const normalized = opType.replace('One', '');
             const isUnique = [
@@ -1358,7 +1409,7 @@ export const openApiDocument = ${JSON.stringify(openapi, null, 2)} as const;
                 by: ['id'],
                 orderBy: [{ id: 'asc' }],
                 _count: { _all: true },
-              } as any;
+              } as Record<string, unknown>;
             } else if (isCreate) {
               input =
                 normalized === 'create'

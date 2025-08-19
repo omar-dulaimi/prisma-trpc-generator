@@ -3,8 +3,8 @@
 echo "Running Prettier (repo-scoped)..."
 npm run --silent format || exit 1
 
-echo "Running ESLint (src only)..."
-npm run --silent lint || exit 1
+echo "Running ESLint..."
+npm run --silent lint:all || exit 1
 
 # Optionally run typecheck fast (noEmit)
 # echo "Typechecking..."

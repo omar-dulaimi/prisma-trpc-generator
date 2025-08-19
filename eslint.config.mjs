@@ -39,6 +39,13 @@ export default [
     },
   },
   prettier,
+  // Loosen some rules in tests
+  {
+    files: ['tests/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-non-null-assertion': 'off',
+    },
+  },
   {
     ignores: [
       'node_modules/',

@@ -38,7 +38,9 @@ export function generateRouters(
   const outDir = join(tempDir, 'generated');
   try {
     fs.rmSync(outDir, { recursive: true, force: true });
-  } catch {}
+  } catch {
+    // noop
+  }
 
   // Copy dev.db if exists so sqlite datasource works relative to tempDir
   const devDbSrc = join(prismaDir, 'dev.db');
@@ -46,12 +48,16 @@ export function generateRouters(
   if (fs.existsSync(devDbSrc)) {
     try {
       fs.copyFileSync(devDbSrc, devDbDst);
-    } catch {}
+    } catch {
+      // noop
+    }
   } else {
     // ensure directory exists even if db missing
     try {
       fs.writeFileSync(devDbDst, '');
-    } catch {}
+    } catch {
+      // noop
+    }
   }
 
   // Prepare patched schema in tempDir
@@ -101,7 +107,7 @@ export function generateRouters(
       );
     }
   } catch {
-    // ignore
+    // noop
   }
 
   // Write schema.prisma into tempDir
@@ -119,7 +125,9 @@ export function generateRouters(
     if (tempConfigPath && !fs.existsSync(tempDir)) {
       try {
         fs.unlinkSync(tempConfigPath);
-      } catch {}
+      } catch {
+        // noop
+      }
     }
   }
 

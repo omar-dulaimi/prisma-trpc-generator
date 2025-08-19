@@ -18,7 +18,9 @@ export default function getRelativePath(
   if (isOutsideOutputPath && schemaPath) {
     // Explicitly resolve relative imports (e.g., '../permissions', '../test-context')
     const schemaDir = path.dirname(schemaPath);
-    toPath = path.isAbsolute(filePath) ? filePath : path.join(schemaDir, filePath);
+    toPath = path.isAbsolute(filePath)
+      ? filePath
+      : path.join(schemaDir, filePath);
   }
 
   const newPath = path

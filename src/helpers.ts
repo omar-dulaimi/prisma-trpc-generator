@@ -199,7 +199,9 @@ export function generateBaseRouter(
       if (i === 0) {
         sourceFile.addStatements(/* ts */ `
   export const ${procName} = t.procedure${
-    config.withRequestId || config.withLogging ? '.use(requestIdMiddleware)' : ''
+    config.withRequestId || config.withLogging
+      ? '.use(requestIdMiddleware)'
+      : ''
   }
       `);
       }
@@ -429,7 +431,9 @@ export interface ModelGenConfig {
   hide?: boolean;
 }
 
-export function getModelsGenConfig(models: ReadonlyArray<DMMF.Model>): Record<string, ModelGenConfig> {
+export function getModelsGenConfig(
+  models: ReadonlyArray<DMMF.Model>,
+): Record<string, ModelGenConfig> {
   const modelAttributeRegex = /(@@Gen\.)+([A-z])+(\()+(.+)+(\))+/;
   const attributeNameRegex = /(?:\.)+([A-Za-z])+(?:\()+/;
   const attributeArgsRegex = /(?:\()+([A-Za-z])+:+(.+)+(?:\))+/;
@@ -438,9 +442,13 @@ export function getModelsGenConfig(models: ReadonlyArray<DMMF.Model>): Record<st
     const cfg: ModelGenConfig = {};
     if (model.documentation) {
       const attribute = model.documentation?.match(modelAttributeRegex)?.[0];
-      const attributeName = attribute?.match(attributeNameRegex)?.[0]?.slice(1, -1);
+      const attributeName = attribute
+        ?.match(attributeNameRegex)?.[0]
+        ?.slice(1, -1);
       if (attributeName === 'model') {
-        const rawAttributeArgs = attribute?.match(attributeArgsRegex)?.[0]?.slice(1, -1);
+        const rawAttributeArgs = attribute
+          ?.match(attributeArgsRegex)?.[0]
+          ?.slice(1, -1);
         const parsed: Record<string, unknown> = {};
         if (rawAttributeArgs) {
           const parts = rawAttributeArgs
@@ -460,8 +468,10 @@ export function getModelsGenConfig(models: ReadonlyArray<DMMF.Model>): Record<st
           }
         }
         if (typeof parsed.hide === 'boolean' && parsed.hide) cfg.hide = true;
-        if (typeof parsed.tenantKey === 'string') cfg.tenantKey = parsed.tenantKey;
-        if (typeof parsed.softDelete === 'string') cfg.softDeleteKey = parsed.softDelete;
+        if (typeof parsed.tenantKey === 'string')
+          cfg.tenantKey = parsed.tenantKey;
+        if (typeof parsed.softDelete === 'string')
+          cfg.softDeleteKey = parsed.softDelete;
       }
     }
     result[model.name] = cfg;

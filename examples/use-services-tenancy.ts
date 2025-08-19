@@ -13,8 +13,10 @@ const ANSI = {
   magenta: '\x1b[35m',
 };
 
-const hr = (label: string) => `${ANSI.dim}${'-'.repeat(8)}${ANSI.reset} ${ANSI.bold}${label}${ANSI.reset} ${ANSI.dim}${'-'.repeat(8)}${ANSI.reset}`;
-const tag = (tenantId: number) => `${ANSI.cyan}[tenant:${tenantId}]${ANSI.reset}`;
+const hr = (label: string) =>
+  `${ANSI.dim}${'-'.repeat(8)}${ANSI.reset} ${ANSI.bold}${label}${ANSI.reset} ${ANSI.dim}${'-'.repeat(8)}${ANSI.reset}`;
+const tag = (tenantId: number) =>
+  `${ANSI.cyan}[tenant:${tenantId}]${ANSI.reset}`;
 const ok = `${ANSI.green}✔${ANSI.reset}`;
 const warn = `${ANSI.yellow}⚠${ANSI.reset}`;
 
@@ -29,12 +31,23 @@ async function runForTenant(prisma: PrismaClient, tenantId: number) {
   await prisma.user.upsert({
     where: { id: tenantId },
     update: {},
-    create: { id: tenantId, email: `tenant${tenantId}@example.com`, name: `Tenant ${tenantId}` },
+    create: {
+      id: tenantId,
+      email: `tenant${tenantId}@example.com`,
+      name: `Tenant ${tenantId}`,
+    },
   });
   console.log(tag(tenantId), ok, 'seeded user');
 
   // Create
-  const created = await s.post.create({ data: { title: `Hello T${tenantId}`, authorId: tenantId, likes: BigInt(0), bytes: Buffer.from('x') } });
+  const created = await s.post.create({
+    data: {
+      title: `Hello T${tenantId}`,
+      authorId: tenantId,
+      likes: BigInt(0),
+      bytes: Buffer.from('x'),
+    },
+  });
   console.log(tag(tenantId), ok, 'created post id', created.id);
 
   // List
@@ -42,18 +55,35 @@ async function runForTenant(prisma: PrismaClient, tenantId: number) {
   console.log(tag(tenantId), ok, 'posts count', list.length);
 
   // Update
-  const updated = await s.post.update({ where: { id: created.id }, data: { viewCount: { increment: 1 } } });
+  const updated = await s.post.update({
+    where: { id: created.id },
+    data: { viewCount: { increment: 1 } },
+  });
   console.log(tag(tenantId), ok, 'updated viewCount', updated.viewCount);
 
   // Optional tenant/soft-delete flags (effective when schema is annotated)
   await s.post.findMany({}, { bypassTenant: false, withDeleted: false });
-  console.log(tag(tenantId), warn, 'scoping flags applied (effective when schema is annotated)');
+  console.log(
+    tag(tenantId),
+    warn,
+    'scoping flags applied (effective when schema is annotated)',
+  );
 
   // createMany
   const cm = await s.post.createMany({
     data: [
-      { title: `B1-T${tenantId}`, authorId: tenantId, likes: BigInt(1), bytes: Buffer.from('a') },
-      { title: `B2-T${tenantId}`, authorId: tenantId, likes: BigInt(2), bytes: Buffer.from('b') },
+      {
+        title: `B1-T${tenantId}`,
+        authorId: tenantId,
+        likes: BigInt(1),
+        bytes: Buffer.from('a'),
+      },
+      {
+        title: `B2-T${tenantId}`,
+        authorId: tenantId,
+        likes: BigInt(2),
+        bytes: Buffer.from('b'),
+      },
     ],
   });
   console.log(tag(tenantId), ok, 'createMany inserted', cm.count);
@@ -71,18 +101,30 @@ async function runForTenant(prisma: PrismaClient, tenantId: number) {
   console.log(tag(tenantId), ok, 'sum viewCount', agg._sum?.viewCount ?? 0);
 
   // groupBy (explicit orderBy to satisfy types)
-  const gb = await s.post.groupBy({ by: ['published'], _count: { _all: true }, orderBy: { published: 'asc' } });
+  const gb = await s.post.groupBy({
+    by: ['published'],
+    _count: { _all: true },
+    orderBy: { published: 'asc' },
+  });
   console.log(tag(tenantId), ok, 'groupBy published', gb);
 
   // updateMany
-  const um = await s.post.updateMany({ where: { published: false }, data: { viewCount: { increment: 2 } } });
+  const um = await s.post.updateMany({
+    where: { published: false },
+    data: { viewCount: { increment: 2 } },
+  });
   console.log(tag(tenantId), ok, 'updateMany count', um.count);
 
   // upsert
   const up = await s.post.upsert({
     where: { id: 9999 },
     update: { title: `Upserted-Update-T${tenantId}` },
-    create: { title: `Upserted-Create-T${tenantId}`, authorId: tenantId, likes: BigInt(0), bytes: Buffer.from('u') },
+    create: {
+      title: `Upserted-Create-T${tenantId}`,
+      authorId: tenantId,
+      likes: BigInt(0),
+      bytes: Buffer.from('u'),
+    },
   });
   console.log(tag(tenantId), ok, 'upsert result id', up.id);
 

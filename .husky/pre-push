@@ -1,6 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 # Pre-push: format and lint the project while ignoring generated directories
 
 echo "Running Prettier (repo-scoped)..."

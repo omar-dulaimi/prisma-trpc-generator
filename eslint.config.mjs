@@ -6,7 +6,7 @@ import prettier from 'eslint-config-prettier';
 export default [
   js.configs.recommended,
   {
-  files: ['src/**/*.ts', 'tests/**/*.ts'],
+    files: ['src/**/*.ts', 'tests/**/*.ts'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
@@ -46,8 +46,8 @@ export default [
       'package/',
       'coverage/',
       'prisma/generated/',
-  'prisma/**/*.ts',
-  'examples/',
+      'prisma/**/*.ts',
+      'examples/',
       'tests/generated/',
       'tests/schemas/generated/',
       'tests/schemas/providers/generated/',

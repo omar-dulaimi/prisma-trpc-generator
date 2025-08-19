@@ -51,20 +51,20 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: |
             chore: update dependencies
-            
+
             Automated dependency updates via GitHub Actions
           title: 'chore: update dependencies'
           body: |
             ## Automated Dependency Updates
-            
+
             This PR contains automated dependency updates.
-            
+
             ### Changes
             - Updated dependencies to their latest versions
             - Ran tests to ensure compatibility
-            
+
             Please review the changes and merge if tests pass.
-            
+
             ---
             _This PR was created automatically by GitHub Actions_
           branch: update-dependencies-${{ github.run_id }}

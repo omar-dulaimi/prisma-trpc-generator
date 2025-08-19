@@ -24,7 +24,10 @@ describe('feature: middleware and shield', () => {
       }
       if (helpersPath) break;
     }
-    expect(helpersPath, 'expected createRouter.ts to be generated').toBeTruthy();
+    expect(
+      helpersPath,
+      'expected createRouter.ts to be generated',
+    ).toBeTruthy();
     const content = readFileSafe(helpersPath!);
     // globalMiddleware exported when withMiddleware true/string
     expect(content).toContain('export const globalMiddleware');

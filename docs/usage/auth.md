@@ -17,6 +17,7 @@ When enabled, the generator emits:
 ## Strategies
 
 ### session
+
 Provide a module that exports `getUser(req)` and point to it:
 
 ```
@@ -29,6 +30,7 @@ Provide a module that exports `getUser(req)` and point to it:
 ```
 
 ### jwt
+
 By default, the generator emits a simple HS256 `verifyToken` in `auth-strategy.ts` that validates signature, `exp`, and `nbf`. It uses the secret from `JWT_SECRET` (configurable via `auth.jwt.secretEnv`). You can override by pointing to your own modules.
 
 Provide modules for `verifyToken(token, secret)` and/or `getUserFromPayload(payload)` and optionally header/scheme/secret env:
@@ -49,6 +51,7 @@ Provide modules for `verifyToken(token, secret)` and/or `getUserFromPayload(payl
 ```
 
 ### custom
+
 Provide a module that exports `resolveUser(req)`:
 
 ```
@@ -61,6 +64,7 @@ Provide a module that exports `resolveUser(req)`:
 ```
 
 ## Roles
+
 Set the user field used for role checks with `rolesField` (default `role`). Example:
 
 ```
@@ -74,5 +78,6 @@ Then in routers:
 - `roleProcedure(['admin'])` – requires role match
 
 ## Notes
+
 - The generator creates `auth-strategy.ts` with no-op stubs if your paths aren’t provided; you can implement these functions there or point to your own modules via config.
 - The context must include the incoming request at `ctx.req` for the session/jwt strategies; adapt your `createContext` accordingly.

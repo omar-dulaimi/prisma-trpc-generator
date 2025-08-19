@@ -11,67 +11,67 @@ jobs:
     permissions:
       contents: write
       packages: write
-      
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
-        registry-url: 'https://registry.npmjs.org'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Build project
-      run: npm run generate
-      
-    - name: Run tests
-      run: npm test --silent
-      
-    - name: Build package
-      run: ./package.sh
-      
-    - name: Determine if beta release
-      id: check_beta
-      run: |
-        VERSION=$(node -p "require('./package.json').version")
-        if [[ $VERSION == *"beta"* ]]; then
-          echo "is_beta=true" >> $GITHUB_OUTPUT
-          echo "npm_tag=beta" >> $GITHUB_OUTPUT
-        else
-          echo "is_beta=false" >> $GITHUB_OUTPUT
-          echo "npm_tag=latest" >> $GITHUB_OUTPUT
-        fi
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        
-    - name: Publish to NPM
-      run: |
-        cd package
-        npm publish --tag ${{ steps.check_beta.outputs.npm_tag }}
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        
-    - name: Create GitHub Release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
-        prerelease: ${{ steps.check_beta.outputs.is_beta }}
-        body: |
-          ## What's Changed
-          
-          ${{ steps.check_beta.outputs.is_beta == 'true' && '⚠️ **This is a beta release** - Please test thoroughly before using in production.' || '' }}
-          
-          For detailed changes, see the [changelog](https://github.com/omar-dulaimi/prisma-trpc-generator/compare/v${{ steps.check_beta.outputs.version }}...HEAD).
-          
-          ### Installation
-          ```bash
-          npm install prisma-trpc-generator@${{ steps.check_beta.outputs.is_beta == 'true' && 'beta' || 'latest' }}
-          ```
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run generate
+
+      - name: Run tests
+        run: npm test --silent
+
+      - name: Build package
+        run: ./package.sh
+
+      - name: Determine if beta release
+        id: check_beta
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [[ $VERSION == *"beta"* ]]; then
+            echo "is_beta=true" >> $GITHUB_OUTPUT
+            echo "npm_tag=beta" >> $GITHUB_OUTPUT
+          else
+            echo "is_beta=false" >> $GITHUB_OUTPUT
+            echo "npm_tag=latest" >> $GITHUB_OUTPUT
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Publish to NPM
+        run: |
+          cd package
+          npm publish --tag ${{ steps.check_beta.outputs.npm_tag }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: ${{ steps.check_beta.outputs.is_beta }}
+          body: |
+            ## What's Changed
+
+            ${{ steps.check_beta.outputs.is_beta == 'true' && '⚠️ **This is a beta release** - Please test thoroughly before using in production.' || '' }}
+
+            For detailed changes, see the [changelog](https://github.com/omar-dulaimi/prisma-trpc-generator/compare/v${{ steps.check_beta.outputs.version }}...HEAD).
+
+            ### Installation
+            ```bash
+            npm install prisma-trpc-generator@${{ steps.check_beta.outputs.is_beta == 'true' && 'beta' || 'latest' }}
+            ```

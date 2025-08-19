@@ -18,7 +18,9 @@ describe('feature: zod schemas', () => {
         const stat = fs.statSync(p);
         if (stat.isDirectory()) {
           if (entry === 'schemas') {
-            const hasSchemaFiles = fs.readdirSync(p).some(f => f.endsWith('.schema.ts'));
+            const hasSchemaFiles = fs
+              .readdirSync(p)
+              .some((f) => f.endsWith('.schema.ts'));
             if (hasSchemaFiles) {
               foundSchemasDir = p;
               break;
@@ -31,7 +33,9 @@ describe('feature: zod schemas', () => {
     }
 
     if (foundSchemasDir) {
-      const files = fs.readdirSync(foundSchemasDir).filter(f => f.endsWith('.schema.ts'));
+      const files = fs
+        .readdirSync(foundSchemasDir)
+        .filter((f) => f.endsWith('.schema.ts'));
       expect(files.length).toBeGreaterThan(0);
     } else {
       // Fallback: ensure at least one router imports from a ../schemas path

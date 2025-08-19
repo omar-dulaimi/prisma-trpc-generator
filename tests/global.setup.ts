@@ -16,8 +16,13 @@ export default async function () {
       const entries = fs.readdirSync(prismaDir, { withFileTypes: true });
       for (const ent of entries) {
         if (!ent.isFile()) continue;
-        if (/^schema\..+\.prisma$/.test(ent.name) || /^trpc\.config\..+\.json$/.test(ent.name)) {
-          try { fs.rmSync(path.join(prismaDir, ent.name), { force: true }); } catch {}
+        if (
+          /^schema\..+\.prisma$/.test(ent.name) ||
+          /^trpc\.config\..+\.json$/.test(ent.name)
+        ) {
+          try {
+            fs.rmSync(path.join(prismaDir, ent.name), { force: true });
+          } catch {}
         }
       }
     } catch {}

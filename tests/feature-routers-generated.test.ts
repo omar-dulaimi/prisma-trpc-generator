@@ -26,14 +26,17 @@ describe('feature: routers generation', () => {
       }
       if (routersDir) break;
     }
-    expect(routersDir, 'expected routers directory with index.ts under generated outDir').toBeTruthy();
-  expect(exists(join(routersDir!, 'index.ts'))).toBe(true);
-  // Based on schema: User.router.ts, Post.router.ts, Book.router.ts should exist
-  expect(exists(join(routersDir!, 'User.router.ts'))).toBe(true);
-  expect(exists(join(routersDir!, 'Post.router.ts'))).toBe(true);
-  expect(exists(join(routersDir!, 'Book.router.ts'))).toBe(true);
+    expect(
+      routersDir,
+      'expected routers directory with index.ts under generated outDir',
+    ).toBeTruthy();
+    expect(exists(join(routersDir!, 'index.ts'))).toBe(true);
+    // Based on schema: User.router.ts, Post.router.ts, Book.router.ts should exist
+    expect(exists(join(routersDir!, 'User.router.ts'))).toBe(true);
+    expect(exists(join(routersDir!, 'Post.router.ts'))).toBe(true);
+    expect(exists(join(routersDir!, 'Book.router.ts'))).toBe(true);
 
-  const idx = readFileSafe(join(routersDir!, 'index.ts'));
+    const idx = readFileSafe(join(routersDir!, 'index.ts'));
     expect(idx).toContain('appRouter');
     expect(idx).toContain('createRouter');
   });

@@ -6,11 +6,10 @@ Reading and following these guidelines will help us make the contribution proces
 
 ## Quicklinks
 
-* [Getting Started](#getting-started)
-    * [Issues](#issues)
-    * [Pull Requests](#pull-requests)
-* [Getting Help](#getting-help)
-
+- [Getting Started](#getting-started)
+  - [Issues](#issues)
+  - [Pull Requests](#pull-requests)
+- [Getting Help](#getting-help)
 
 ## Getting Started
 

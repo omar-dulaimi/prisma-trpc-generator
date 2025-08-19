@@ -87,10 +87,7 @@ export const configSchema = z.object({
         envName: z.string().optional().default('TRPC_ENDPOINT'),
         fromOpenApi: booleanLike.optional().default(false),
         // Examples mode for request bodies in generated collection
-        examples: z
-          .enum(['none', 'skeleton'])
-          .optional()
-          .default('none'),
+        examples: z.enum(['none', 'skeleton']).optional().default('none'),
       }),
     ])
     .optional()
@@ -121,10 +118,7 @@ export const configSchema = z.object({
   // Flat fallback for Postman fromOpenApi toggle
   postmanFromOpenApi: booleanLike.optional(),
   // Flat alternative for configuring Postman examples (since Prisma generator config is flat key-value)
-  postmanExamples: z
-    .enum(['none', 'skeleton'])
-    .optional()
-    .default('none'),
+  postmanExamples: z.enum(['none', 'skeleton']).optional().default('none'),
   // Request ID + logging
   withRequestId: booleanLike.optional().default(false),
   withLogging: booleanLike.optional().default(false),

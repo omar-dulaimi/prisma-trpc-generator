@@ -120,6 +120,7 @@ Example `prisma/trpc.config.json`:
 ```
 
 Notes
+
 - The config path is resolved relative to the Prisma schema file.
 - Aliases `configPath` and `configFile` are also accepted.
 - If a config file is provided, any inline options in the generator block are ignored with a warning.
@@ -132,15 +133,18 @@ Notes
 Each feature is opt‑in via the JSON config. Below are concise how‑tos and the exact keys to set.
 
 ### 1) Zod validation (inputs)
+
 - Key: `withZod: true`
 - Emits `schemas/` with Zod types for procedure inputs; routers wire `.input()` automatically.
 
 ### 2) Middleware & Shield
+
 - Keys: `withMiddleware: boolean | string`, `withShield: boolean | string`
 - When `withMiddleware: true`, a basic middleware scaffold is included; or point to your own path string.
 - When `withShield` is truthy, the generator imports your `permissions` and exposes `shieldedProcedure` in `createRouter.ts`.
 
 ### 3) Auth (session / JWT / custom)
+
 - Key: `auth: boolean | { strategy?: 'session'|'jwt'|'custom'; rolesField?: string; jwt?: {...}; session?: {...}; custom?: {...} }`
 - When enabled, generator emits:
   - `routers/helpers/auth-strategy.ts` (stubs + default HS256 JWT verifier)
@@ -149,26 +153,31 @@ Each feature is opt‑in via the JSON config. Below are concise how‑tos and th
 - See `docs/usage/auth.md` for strategy hooks and examples.
 
 ### 4) Request ID + logging
+
 - Keys: `withRequestId: boolean`, `withLogging: boolean`
 - Adds a small requestId middleware and optional structured log line around every procedure.
 - To propagate requestId into errors, return it in your `trpcOptions.errorFormatter`.
 
 ### 5) OpenAPI (MVP)
+
 - Key: `openapi: boolean | { enabled?: boolean; title?: string; version?: string; baseUrl?: string; pathPrefix?: string; pathStyle?: 'slash'|'dot'; includeExamples?: boolean }`
 - Emits `openapi/openapi.json` and `routers/adapters/openapi.ts` with a tagged document.
 - Paths map to tRPC endpoints (POST) with a `{ input: {} }` request body schema and optional skeleton examples.
 
 ### 6) Postman collection
+
 - Key: `postman: boolean | { endpoint?: string; envName?: string; fromOpenApi?: boolean; examples?: 'none'|'skeleton' }`
 - Emits `postman/collection.json`. When `fromOpenApi: true`, the collection is derived from OpenAPI.
 - Set `examples: 'skeleton'` to include sample bodies for common operations.
 
 ### 7) DDD services (optional)
+
 - Keys: `withServices`, `serviceStyle`, `serviceDir`, `withListMethod`, `serviceImports`
 - Emits a BaseService and per‑model service stubs; routers can delegate to services when enabled.
 - Tenancy/soft‑delete helpers are included in the service layer if you choose to use it.
 
 ### Migration from inline config
+
 1. Create `prisma/trpc.config.json` and move all previous inline keys into it.
 2. Replace keys in `generator trpc` so it only contains `output` and `config`.
 3. Run generation. If you still have inline keys, the generator will ignore them and warn.
@@ -176,6 +185,7 @@ Each feature is opt‑in via the JSON config. Below are concise how‑tos and th
 ---
 
 ## 📋 Generated output
+
 <details>
 <summary>Show generated layout</summary>
 
@@ -226,6 +236,7 @@ generated/
 ---
 
 ## 🛠️ Advanced usage
+
 <details>
 <summary>Show advanced usage examples</summary>
 
@@ -354,20 +365,30 @@ export const postsRouter = createTRPCRouter({
     ctx.prisma.post.findMany({
       where: { published: true },
       include: { author: { select: { name: true } } },
-    })
+    }),
   ),
 
   create: protectedProcedure
-    .input(z.object({ title: z.string().min(1), content: z.string().optional() }))
+    .input(
+      z.object({ title: z.string().min(1), content: z.string().optional() }),
+    )
     .mutation(({ ctx, input }) =>
-      ctx.prisma.post.create({ data: { ...input, authorId: ctx.user.id } })
+      ctx.prisma.post.create({ data: { ...input, authorId: ctx.user.id } }),
     ),
 
   update: protectedProcedure
-    .input(z.object({ id: z.number(), title: z.string().min(1).optional(), content: z.string().optional() }))
+    .input(
+      z.object({
+        id: z.number(),
+        title: z.string().min(1).optional(),
+        content: z.string().optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
-      const post = await ctx.prisma.post.findFirst({ where: { id, authorId: ctx.user.id } });
+      const post = await ctx.prisma.post.findFirst({
+        where: { id, authorId: ctx.user.id },
+      });
       if (!post) throw new TRPCError({ code: 'FORBIDDEN' });
       return ctx.prisma.post.update({ where: { id }, data });
     }),
@@ -383,7 +404,12 @@ import { appRouter } from '@/server/api/root';
 import { createContext } from '@/server/api/context';
 
 const handler = (req: Request) =>
-  fetchRequestHandler({ endpoint: '/api/trpc', req, router: appRouter, createContext });
+  fetchRequestHandler({
+    endpoint: '/api/trpc',
+    req,
+    router: appRouter,
+    createContext,
+  });
 
 export { handler as GET, handler as POST };
 ```
@@ -416,37 +442,44 @@ const PostList = () => {
 ---
 
 ## 🔍 Troubleshooting, performance, FAQ
+
 <details>
 <summary>Show troubleshooting, performance tips, and FAQ</summary>
 
 ### Common issues
 
 **Error: Cannot find module '../context'**
+
 - Ensure your `contextPath` is correct relative to the output directory.
 - Check that your context file exports a `Context` type.
 
 **TypeScript errors in generated routers**
+
 - Ensure dependencies are installed and up to date.
 - Verify your tRPC context is properly typed.
 - Ensure `strict: true` is enabled in `tsconfig.json`.
 
 **Generated routers not updating**
+
 - Run `npx prisma generate` after modifying your schema.
 - Check that the generator is properly configured in `schema.prisma`.
 - Clear your build cache and regenerate.
 
 **Zod validation errors**
+
 - Ensure Zod 4.0+ is installed.
 - Check that input schemas match your Prisma model types.
 
 ### Performance considerations
 
 For large schemas (50+ models):
+
 - Use selective generation with model hiding.
 - Split routers into multiple files.
 - Consider lazy loading routers.
 
 Build times:
+
 - Add generated files to `.gitignore`.
 - Use parallel builds where possible.
 - Cache dependencies in CI.
@@ -479,28 +512,33 @@ A: Use Prisma's `@ignore` or `@@Gen.model(hide: true)`.
 ---
 
 ## 🤝 Contributing
+
 <details>
 <summary>Show contributing guide</summary>
 
 ### Development setup
 
-1) Fork and clone the repository
+1. Fork and clone the repository
+
 ```bash
 git clone https://github.com/your-username/prisma-trpc-generator.git
 cd prisma-trpc-generator
 ```
 
-2) Install dependencies
+2. Install dependencies
+
 ```bash
 npm install
 ```
 
-3) Build/generate
+3. Build/generate
+
 ```bash
 npm run generate
 ```
 
-4) Run tests
+4. Run tests
+
 ```bash
 npm test
 ```
@@ -513,6 +551,7 @@ npm test
 - Performance tests: large schema handling
 
 Run specific test suites
+
 ```bash
 npm test --silent
 npm run test:integration
@@ -538,6 +577,7 @@ npm run format
 ### Release process
 
 Semantic versioning
+
 - Patch: bug fixes and small improvements
 - Minor: new features and enhancements
 - Major: breaking changes

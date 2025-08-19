@@ -8,7 +8,6 @@ Please see the [contributing guidelines](https://github.com/omar-dulaimi/prisma-
 >
 > If the UI is being changed, please provide screenshots.
 
-
 ### References
 
 > Include any links supporting this change such as a:

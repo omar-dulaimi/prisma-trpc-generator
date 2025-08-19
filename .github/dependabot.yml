@@ -1,41 +1,41 @@
 version: 2
 updates:
   # Enable version updates for npm
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
     open-pull-requests-limit: 5
     reviewers:
-      - "omar-dulaimi"
+      - 'omar-dulaimi'
     assignees:
-      - "omar-dulaimi"
+      - 'omar-dulaimi'
     commit-message:
-      prefix: "chore"
-      include: "scope"
+      prefix: 'chore'
+      include: 'scope'
     labels:
-      - "dependencies"
-      - "automated"
+      - 'dependencies'
+      - 'automated'
     # Group related dependencies together
     groups:
       semantic-release:
         patterns:
-          - "@semantic-release/*"
-          - "semantic-release"
+          - '@semantic-release/*'
+          - 'semantic-release'
       typescript:
         patterns:
-          - "typescript"
-          - "@types/*"
-          - "@typescript-eslint/*"
+          - 'typescript'
+          - '@types/*'
+          - '@typescript-eslint/*'
       testing:
         patterns:
-          - "vitest"
-          - "@vitest/*"
-          - "expect-type"
+          - 'vitest'
+          - '@vitest/*'
+          - 'expect-type'
       prisma:
         patterns:
-          - "@prisma/*"
-          - "prisma"
-          - "prisma-*"
+          - '@prisma/*'
+          - 'prisma'
+          - 'prisma-*'

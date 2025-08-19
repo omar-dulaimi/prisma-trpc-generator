@@ -1202,7 +1202,7 @@ export const openApiDocument = ${JSON.stringify(openapi, null, 2)} as const;
       > = {};
       const paths = (
         lastOpenApi && 'paths' in lastOpenApi ? lastOpenApi.paths : {}
-  ) as Record<string, unknown>;
+      ) as Record<string, unknown>;
       for (const [p, methods] of Object.entries(paths)) {
         const postOp = (methods as { post?: unknown }).post as
           | {

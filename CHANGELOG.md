@@ -1,3 +1,13 @@
+## [2.4.0](https://github.com/omar-dulaimi/prisma-trpc-generator/compare/v2.3.0...v2.4.0) (2025-08-23)
+
+### 🚀 Features
+
+* add metadata support, enhance docs, and update dependencies ([d1de829](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/d1de829f2c1657ca7a0fd933cc592f951bf31469))
+
+### 🐛 Bug Fixes
+
+* **typing:** align router return types with Prisma inference and cast args to correct Prisma.*Args per op; correct OrThrow arg mapping; use named Prisma import in routers ([e26d4ec](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/e26d4ec5aad61414cf1246c0af1671095140efe2))
+
 ## [2.3.0](https://github.com/omar-dulaimi/prisma-trpc-generator/compare/v2.2.1...v2.3.0) (2025-08-18)
 
 ### 🚀 Features

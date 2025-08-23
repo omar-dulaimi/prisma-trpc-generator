@@ -47,7 +47,6 @@
     "tslib": "^2.8.1"
   },
   "devDependencies": {
-    "husky": "^9.1.7",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^10.0.1",
@@ -64,6 +63,7 @@
     "eslint": "^9.34.0",
     "eslint-config-prettier": "^10.1.8",
     "expect-type": "^1.2.2",
+    "husky": "^9.1.7",
     "prettier": "^3.6.2",
     "prisma": "^6.14.0",
     "prisma-zod-generator": "^1.16.1",

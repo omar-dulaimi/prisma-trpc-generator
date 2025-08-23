@@ -217,6 +217,108 @@ export function generateBaseRouter(
   }
 }
 
+// We intentionally avoid manually annotating return types here and let
+// Prisma Client infer them from the actual call expression. This ensures
+// results match Prisma's computed types (e.g., BatchPayload for updateMany,
+// or $Result.GetResult for findMany with select/include), keeping parity with
+// node_modules/.prisma/client/index.d.ts without re-implementing the complex
+// conditional types Prisma uses internally.
+const getReturnTypeAnnotation = (): string => '';
+
+// Helper function to generate tRPC metadata for operations
+const generateMetadata = (
+  modelName: string,
+  opType: string,
+  baseOpType: string,
+  config: Config,
+): string => {
+  if (!config.withMeta) {
+    return ''; // No metadata if disabled
+  }
+
+  const metaConfig =
+    typeof config.withMeta === 'object'
+      ? config.withMeta
+      : {
+          openapi: true,
+          auth: false,
+          description: true,
+          defaultMeta: {},
+        };
+
+  const metadata: Record<string, unknown> = { ...metaConfig.defaultMeta };
+
+  // Generate OpenAPI metadata
+  if (metaConfig.openapi) {
+    const isQuery = getProcedureTypeByOpName(baseOpType) === 'query';
+    const method = isQuery ? 'GET' : 'POST';
+    const operationName = config.showModelNameInProcedure
+      ? `${baseOpType}${modelName}`
+      : baseOpType;
+
+    metadata.openapi = {
+      method,
+      path: `/${modelName.toLowerCase()}/${operationName}`,
+      tags: [modelName],
+      summary: getOperationDescription(modelName, baseOpType),
+    };
+  }
+
+  // Generate auth metadata
+  if (metaConfig.auth && config.auth !== false) {
+    metadata.auth = {
+      required: config.withMiddleware || config.withShield,
+    };
+  }
+
+  // Generate description
+  if (metaConfig.description) {
+    metadata.description = getOperationDescription(modelName, baseOpType);
+  }
+
+  return `.meta(${JSON.stringify(metadata, null, 2)})`;
+};
+
+// Helper function to get human-readable operation descriptions
+const getOperationDescription = (modelName: string, opType: string): string => {
+  const model = modelName.toLowerCase();
+
+  switch (opType) {
+    case 'findMany':
+      return `Find multiple ${model} records`;
+    case 'findUnique':
+      return `Find a unique ${model} record`;
+    case 'findFirst':
+      return `Find the first ${model} record`;
+    case 'createOne':
+      return `Create a new ${model} record`;
+    case 'createMany':
+      return `Create multiple ${model} records`;
+    case 'createManyAndReturn':
+      return `Create multiple ${model} records and return them`;
+    case 'updateOne':
+      return `Update a ${model} record`;
+    case 'updateMany':
+      return `Update multiple ${model} records`;
+    case 'updateManyAndReturn':
+      return `Update multiple ${model} records and return them`;
+    case 'deleteOne':
+      return `Delete a ${model} record`;
+    case 'deleteMany':
+      return `Delete multiple ${model} records`;
+    case 'upsertOne':
+      return `Create or update a ${model} record`;
+    case 'aggregate':
+      return `Aggregate ${model} records`;
+    case 'groupBy':
+      return `Group ${model} records`;
+    case 'count':
+      return `Count ${model} records`;
+    default:
+      return `Perform ${opType} operation on ${model}`;
+  }
+};
+
 export function generateProcedure(
   sourceFile: SourceFile,
   name: string,
@@ -232,26 +334,40 @@ export function generateProcedure(
     // Ensure 'orderBy' key exists in the argument type to satisfy Prisma's groupBy constraints
     input = '{ ...input, orderBy: input.orderBy }';
   }
+
+  // Let Prisma infer the return type for maximum compatibility with its client types
+  const returnTypeAnnotation = getReturnTypeAnnotation();
+
+  // Get metadata for the procedure (if enabled)
+  const metadataCall = generateMetadata(modelName, opType, baseOpType, config);
+
   // For groupBy, pass the full input (schema aligns with Prisma.GroupByArgs)
   const procHeader = `${
     config.showModelNameInProcedure ? name : nameWithoutModel
-  }: ${getProcedureName(config)}
+  }: ${getProcedureName(config)}${metadataCall}
   ${config.withZod ? `.input(${typeName})` : ''}.${getProcedureTypeByOpName(
     baseOpType,
   )}`;
 
+  // Determine Prisma Args type for this operation to keep input strongly typed at call-site
+  const prismaArgsType = getPrismaArgsTypeByOpName(opType);
+  const prismaMethod = opType === 'count' ? 'count' : opType.replace('One', '');
+  // Build a properly typed args expression; for groupBy we also re-expose orderBy
+  const argsExpr =
+    nameWithoutModel === 'groupBy' && config.withZod
+      ? `{ ...(${input} as Prisma.${modelName}${prismaArgsType}), orderBy: (${input} as Prisma.${modelName}${prismaArgsType}).orderBy }`
+      : `${input} as Prisma.${modelName}${prismaArgsType}`;
+
   if (!config.withServices) {
-    sourceFile.addStatements(/* ts */ `${procHeader}(async ({ ctx, input }) => {
-    const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
-      modelName,
-    )}.${opType === 'count' ? 'count' : opType.replace('One', '')}(${input});
+    sourceFile.addStatements(/* ts */ `${procHeader}(async ({ ctx, input })${returnTypeAnnotation} => {
+    const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(modelName)}.${prismaMethod}(${argsExpr});
     return ${name};
   }),`);
   } else {
-    const methodName = opType === 'count' ? 'count' : opType.replace('One', '');
-    sourceFile.addStatements(/* ts */ `${procHeader}(async ({ ctx, input }) => {
+    const methodName = prismaMethod;
+    sourceFile.addStatements(/* ts */ `${procHeader}(async ({ ctx, input })${returnTypeAnnotation} => {
     const services = makeServices(ctx);
-    const ${name} = await services.${uncapitalizeFirstLetter(modelName)}.${methodName}(${input});
+    const ${name} = await services.${uncapitalizeFirstLetter(modelName)}.${methodName}(${argsExpr});
     return ${name};
   }),`);
   }
@@ -352,6 +468,48 @@ export const getInputTypeByOpName = (opName: string, modelName: string) => {
     // Fallback for unknown operation types
   }
   return inputType;
+};
+
+// Map an operation name to its corresponding Prisma Args type suffix
+export const getPrismaArgsTypeByOpName = (opName: string): string => {
+  // Normalize names that end with "One"
+  const isOrThrow = /OrThrow$/.test(opName);
+  const norm = opName.replace(/One$/, '').replace(/OrThrow$/, '');
+  switch (norm) {
+    case 'findUnique':
+      return isOrThrow ? 'FindUniqueOrThrowArgs' : 'FindUniqueArgs';
+    case 'findFirst':
+      return isOrThrow ? 'FindFirstOrThrowArgs' : 'FindFirstArgs';
+    case 'findMany':
+      return 'FindManyArgs';
+    case 'aggregate':
+      return 'AggregateArgs';
+    case 'groupBy':
+      return 'GroupByArgs';
+    case 'count':
+      return 'CountArgs';
+    case 'create':
+      return 'CreateArgs';
+    case 'createMany':
+      return 'CreateManyArgs';
+    case 'createManyAndReturn':
+      return 'CreateManyAndReturnArgs';
+    case 'delete':
+      return 'DeleteArgs';
+    case 'update':
+      return 'UpdateArgs';
+    case 'deleteMany':
+      return 'DeleteManyArgs';
+    case 'updateMany':
+      return 'UpdateManyArgs';
+    case 'updateManyAndReturn':
+      return 'UpdateManyAndReturnArgs';
+    case 'upsert':
+      return 'UpsertArgs';
+    default:
+      // Fallback to a safe, general args type (rare)
+      return 'FindManyArgs';
+  }
 };
 
 export const getProcedureTypeByOpName = (opName: string) => {

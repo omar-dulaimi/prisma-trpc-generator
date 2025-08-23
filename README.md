@@ -48,9 +48,10 @@ Automatically generate fully implemented, type-safe tRPC routers from your Prism
   - [Middleware & Shield](#2-middleware--shield)
   - [Auth](#3-auth-session--jwt--custom)
   - [Request ID + logging](#4-request-id--logging)
-  - [OpenAPI (MVP)](#5-openapi-mvp)
-  - [Postman collection](#6-postman-collection)
-  - [DDD services (optional)](#7-ddd-services-optional)
+  - [tRPC Metadata Support](#5-trpc-metadata-support)
+  - [OpenAPI (MVP)](#6-openapi-mvp)
+  - [Postman collection](#7-postman-collection)
+  - [DDD services (optional)](#8-ddd-services-optional)
   - [Migration from inline config](#migration-from-inline-config)
 - [📋 Generated output](#generated-output)
 - [🛠️ Advanced usage](#advanced-usage)
@@ -110,6 +111,8 @@ Example `prisma/trpc.config.json`:
   "withShield": "./shield",
   "contextPath": "./context",
   "trpcOptionsPath": "./trpcOptions",
+  "dateTimeStrategy": "date",
+  "withMeta": false,
   "postman": true,
   "postmanExamples": "skeleton",
   "openapi": true,
@@ -136,6 +139,49 @@ Each feature is opt‑in via the JSON config. Below are concise how‑tos and th
 
 - Key: `withZod: true`
 - Emits `schemas/` with Zod types for procedure inputs; routers wire `.input()` automatically.
+- **Date handling**: Set `dateTimeStrategy` to control DateTime field validation:
+  - `"date"` (default): `z.date()` - accepts only Date objects
+  - `"coerce"`: `z.coerce.date()` - accepts both Date objects and ISO strings
+  - `"isoString"`: ISO string validation with transformation
+
+#### Extending Zod schemas with Prisma comments
+
+You can add additional Zod validation constraints using special comments in your Prisma schema:
+
+```prisma
+model User {
+  id    Int     @id @default(autoincrement()) /// @zod.number.int()
+  email String  @unique /// @zod.string.email()
+  name  String? /// @zod.string.min(1).max(100)
+  age   Int?    /// @zod.number.int().min(0).max(120)
+
+  posts Post[]
+}
+
+model Post {
+  id        Int      @id @default(autoincrement()) /// @zod.number.int()
+  title     String   /// @zod.string.min(1).max(255, { message: "Title must be shorter than 256 characters" })
+  content   String?  /// @zod.string.max(10000)
+  published Boolean  @default(false)
+
+  author   User? @relation(fields: [authorId], references: [id])
+  authorId Int?
+}
+```
+
+This generates Zod schemas with the specified validations:
+
+```typescript
+export const UserCreateInput = z.object({
+  id: z.number().int(),
+  email: z.string().email(),
+  name: z.string().min(1).max(100).nullish(),
+  age: z.number().int().min(0).max(120).nullish(),
+  // ...
+});
+```
+
+For more advanced Zod validation options and syntax, see the [prisma-zod-generator documentation](https://github.com/omar-dulaimi/prisma-zod-generator).
 
 ### 2) Middleware & Shield
 
@@ -158,19 +204,28 @@ Each feature is opt‑in via the JSON config. Below are concise how‑tos and th
 - Adds a small requestId middleware and optional structured log line around every procedure.
 - To propagate requestId into errors, return it in your `trpcOptions.errorFormatter`.
 
-### 5) OpenAPI (MVP)
+### 5) tRPC Metadata Support
+
+- Key: `withMeta: boolean | { openapi?: boolean; auth?: boolean; description?: boolean; defaultMeta?: object }`
+- When enabled, adds `.meta()` calls to generated procedures with:
+  - OpenAPI-compatible metadata (HTTP methods, paths, tags, descriptions)
+  - Authentication metadata for middleware integration
+  - Custom metadata via `defaultMeta` configuration
+- Perfect for OpenAPI documentation, conditional auth, and enhanced middleware
+
+### 6) OpenAPI (MVP)
 
 - Key: `openapi: boolean | { enabled?: boolean; title?: string; version?: string; baseUrl?: string; pathPrefix?: string; pathStyle?: 'slash'|'dot'; includeExamples?: boolean }`
 - Emits `openapi/openapi.json` and `routers/adapters/openapi.ts` with a tagged document.
 - Paths map to tRPC endpoints (POST) with a `{ input: {} }` request body schema and optional skeleton examples.
 
-### 6) Postman collection
+### 7) Postman collection
 
 - Key: `postman: boolean | { endpoint?: string; envName?: string; fromOpenApi?: boolean; examples?: 'none'|'skeleton' }`
 - Emits `postman/collection.json`. When `fromOpenApi: true`, the collection is derived from OpenAPI.
 - Set `examples: 'skeleton'` to include sample bodies for common operations.
 
-### 7) DDD services (optional)
+### 8) DDD services (optional)
 
 - Keys: `withServices`, `serviceStyle`, `serviceDir`, `withListMethod`, `serviceImports`
 - Emits a BaseService and per‑model service stubs; routers can delegate to services when enabled.
@@ -469,6 +524,7 @@ const PostList = () => {
 
 - Ensure Zod 4.0+ is installed.
 - Check that input schemas match your Prisma model types.
+- For DateTime validation errors with JSON APIs, set `dateTimeStrategy: "coerce"` to accept date strings.
 
 ### Performance considerations
 

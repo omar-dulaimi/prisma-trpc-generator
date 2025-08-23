@@ -8,5 +8,10 @@
   "auth": true,
   "postman": true,
   "postmanExamples": "skeleton",
-  "openapi": true
+  "openapi": true,
+  "withMeta": {
+    "openapi": true,
+    "auth": true,
+    "description": true
+  }
 }

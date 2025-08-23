@@ -8,17 +8,17 @@ import { generate as PrismaZodGenerator } from 'prisma-zod-generator/lib/prisma-
 import type { Config } from './config';
 import { configSchema } from './config';
 import {
-    generateBaseRouter,
-    generateCreateRouterImport,
-    generateProcedure,
-    generateRouterImport,
-    generateRouterSchemaImports,
-    generateShieldImport,
-    generatetRPCImport,
-    getInputTypeByOpName,
-    getModelsGenConfig,
-    getRouterSchemaImportByOpName,
-    resolveModelsComments,
+  generateBaseRouter,
+  generateCreateRouterImport,
+  generateProcedure,
+  generateRouterImport,
+  generateRouterSchemaImports,
+  generateShieldImport,
+  generatetRPCImport,
+  getInputTypeByOpName,
+  getModelsGenConfig,
+  getRouterSchemaImportByOpName,
+  resolveModelsComments,
 } from './helpers';
 import { project } from './project';
 import getRelativePath from './utils/getRelativePath';
@@ -182,6 +182,35 @@ export async function generate(options: GeneratorOptions) {
   const hiddenModels: string[] = [];
   resolveModelsComments([...models], hiddenModels);
   const modelGenConfig = getModelsGenConfig(models);
+
+  // Resolve Prisma Client import path respecting custom output path if provided
+  let prismaClientAbsPath: string | null = null;
+  try {
+    const outputField = (prismaClientProvider as any)?.output as
+      | { fromEnvVar: string | null; value: string | null }
+      | undefined;
+    // Only treat as custom if user explicitly set a value in schema
+    const rawClientOut = outputField && outputField.value ? outputField.value : null;
+    if (rawClientOut) {
+      prismaClientAbsPath = path.isAbsolute(rawClientOut)
+        ? rawClientOut
+        : path.resolve(path.dirname(options.schemaPath), rawClientOut);
+    }
+  } catch {
+    prismaClientAbsPath = null;
+  }
+  const resolveClientImportFrom = (fromDirAbs: string) => {
+    if (!prismaClientAbsPath) return '@prisma/client';
+    const norm = prismaClientAbsPath.split(path.sep).join(path.posix.sep);
+    // If Prisma Client path points to the official package, prefer the bare package import
+    const isDefaultPkg = norm.includes('/@prisma/client');
+    if (isDefaultPkg) return '@prisma/client';
+    const rel = path
+      .relative(fromDirAbs, prismaClientAbsPath)
+      .split(path.sep)
+      .join(path.posix.sep);
+    return rel.startsWith('.') ? rel : `./${rel}`;
+  };
   const createRouter = project.createSourceFile(
     path.resolve(outputDir, 'routers', 'helpers', 'createRouter.ts'),
     undefined,
@@ -308,9 +337,10 @@ export async function generate(options: GeneratorOptions) {
       undefined,
       { overwrite: true },
     );
+  const prismaClientImportForServices = resolveClientImportFrom(servicesDirAbs);
     baseServiceFile.addStatements(/* ts */ `
 // @generated
-import type { Prisma, PrismaClient } from '@prisma/client';
+import type { Prisma, PrismaClient } from '${prismaClientImportForServices}';
 export type HasPrisma = { prisma: PrismaClient };
 
 export class BaseService<M extends keyof PrismaClientModels, C extends HasPrisma = HasPrisma> {
@@ -359,8 +389,9 @@ type PrismaClientModels = {
     }
 
     // Types from Prisma Client
-    indexFile.addStatements(/* ts */ `
-import type { Prisma } from '@prisma/client';
+  const prismaClientImportForServicesIndex = prismaClientImportForServices;
+  indexFile.addStatements(/* ts */ `
+import type { Prisma } from '${prismaClientImportForServicesIndex}';
 import { BaseService } from './BaseService';
 `);
     indexFile.addStatements(/* ts */ `
@@ -796,8 +827,10 @@ export function makeServices(ctx: Context) {
     });
 
     // Add Prisma import for payload types/Args types used in casts
+    const routersDirAbs = path.resolve(outputDir, 'routers');
+    const prismaClientImportForRouters = resolveClientImportFrom(routersDirAbs);
     modelRouter.addImportDeclaration({
-      moduleSpecifier: '@prisma/client',
+      moduleSpecifier: prismaClientImportForRouters,
       namedImports: ['Prisma'],
     });
 

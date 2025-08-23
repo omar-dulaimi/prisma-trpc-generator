@@ -217,40 +217,13 @@ export function generateBaseRouter(
   }
 }
 
-// Helper function to determine if an operation supports include/select
-const supportsIncludeSelect = (opType: string): boolean => {
-  const supportedOps = [
-    'findUnique',
-    'findFirst', 
-    'findMany',
-    'createOne',
-    'updateOne',
-    'upsertOne',
-    'deleteOne'
-  ];
-  return supportedOps.includes(opType);
-};
-
-// Helper function to get the proper return type annotation for operations that support include/select
-const getReturnTypeAnnotation = (modelName: string, opType: string): string => {
-  if (!supportsIncludeSelect(opType)) {
-    return ''; // No annotation needed for operations that don't support include/select
-  }
-  
-  const capitalizedModelName = modelName;
-  
-  // For operations that return single records
-  if (['findUnique', 'findFirst', 'createOne', 'updateOne', 'upsertOne', 'deleteOne'].includes(opType)) {
-    return `: Promise<Prisma.${capitalizedModelName}GetPayload<typeof input> | null>`;
-  }
-  
-  // For operations that return arrays (findMany)
-  if (opType === 'findMany') {
-    return `: Promise<Prisma.${capitalizedModelName}GetPayload<typeof input>[]>`;
-  }
-  
-  return '';
-};
+// We intentionally avoid manually annotating return types here and let
+// Prisma Client infer them from the actual call expression. This ensures
+// results match Prisma's computed types (e.g., BatchPayload for updateMany,
+// or $Result.GetResult for findMany with select/include), keeping parity with
+// node_modules/.prisma/client/index.d.ts without re-implementing the complex
+// conditional types Prisma uses internally.
+const getReturnTypeAnnotation = (_modelName: string, _opType: string): string => '';
 
 // Helper function to generate tRPC metadata for operations
 const generateMetadata = (modelName: string, opType: string, baseOpType: string, config: Config): string => {
@@ -352,7 +325,7 @@ export function generateProcedure(
     input = '{ ...input, orderBy: input.orderBy }';
   }
   
-  // Get the return type annotation for operations that support include/select
+  // Let Prisma infer the return type for maximum compatibility with its client types
   const returnTypeAnnotation = getReturnTypeAnnotation(modelName, baseOpType);
   
   // Get metadata for the procedure (if enabled)
@@ -366,18 +339,24 @@ export function generateProcedure(
     baseOpType,
   )}`;
 
+  // Determine Prisma Args type for this operation to keep input strongly typed at call-site
+  const prismaArgsType = getPrismaArgsTypeByOpName(opType, modelName);
+  const prismaMethod = opType === 'count' ? 'count' : opType.replace('One', '');
+  // Build a properly typed args expression; for groupBy we also re-expose orderBy
+  const argsExpr = nameWithoutModel === 'groupBy' && config.withZod
+    ? `{ ...(${input} as Prisma.${modelName}${prismaArgsType}), orderBy: (${input} as Prisma.${modelName}${prismaArgsType}).orderBy }`
+    : `${input} as Prisma.${modelName}${prismaArgsType}`;
+
   if (!config.withServices) {
     sourceFile.addStatements(/* ts */ `${procHeader}(async ({ ctx, input })${returnTypeAnnotation} => {
-    const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
-      modelName,
-    )}.${opType === 'count' ? 'count' : opType.replace('One', '')}(${input});
+    const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(modelName)}.${prismaMethod}(${argsExpr});
     return ${name};
   }),`);
   } else {
-    const methodName = opType === 'count' ? 'count' : opType.replace('One', '');
+    const methodName = prismaMethod;
     sourceFile.addStatements(/* ts */ `${procHeader}(async ({ ctx, input })${returnTypeAnnotation} => {
     const services = makeServices(ctx);
-    const ${name} = await services.${uncapitalizeFirstLetter(modelName)}.${methodName}(${input});
+    const ${name} = await services.${uncapitalizeFirstLetter(modelName)}.${methodName}(${argsExpr});
     return ${name};
   }),`);
   }
@@ -478,6 +457,51 @@ export const getInputTypeByOpName = (opName: string, modelName: string) => {
     // Fallback for unknown operation types
   }
   return inputType;
+};
+
+// Map an operation name to its corresponding Prisma Args type suffix
+export const getPrismaArgsTypeByOpName = (
+  opName: string,
+  modelName: string,
+): string => {
+  // Normalize names that end with "One"
+  const isOrThrow = /OrThrow$/.test(opName);
+  const norm = opName.replace(/One$/, '').replace(/OrThrow$/, '');
+  switch (norm) {
+    case 'findUnique':
+      return isOrThrow ? 'FindUniqueOrThrowArgs' : 'FindUniqueArgs';
+    case 'findFirst':
+      return isOrThrow ? 'FindFirstOrThrowArgs' : 'FindFirstArgs';
+    case 'findMany':
+      return 'FindManyArgs';
+    case 'aggregate':
+      return 'AggregateArgs';
+    case 'groupBy':
+      return 'GroupByArgs';
+    case 'count':
+      return 'CountArgs';
+    case 'create':
+      return 'CreateArgs';
+    case 'createMany':
+      return 'CreateManyArgs';
+    case 'createManyAndReturn':
+      return 'CreateManyAndReturnArgs';
+    case 'delete':
+      return 'DeleteArgs';
+    case 'update':
+      return 'UpdateArgs';
+    case 'deleteMany':
+      return 'DeleteManyArgs';
+    case 'updateMany':
+      return 'UpdateManyArgs';
+    case 'updateManyAndReturn':
+      return 'UpdateManyAndReturnArgs';
+    case 'upsert':
+      return 'UpsertArgs';
+    default:
+      // Fallback to a safe, general args type (rare)
+      return 'FindManyArgs';
+  }
 };
 
 export const getProcedureTypeByOpName = (opName: string) => {

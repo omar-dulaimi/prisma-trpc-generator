@@ -8,17 +8,17 @@ import { generate as PrismaZodGenerator } from 'prisma-zod-generator/lib/prisma-
 import type { Config } from './config';
 import { configSchema } from './config';
 import {
-  generateBaseRouter,
-  generateCreateRouterImport,
-  generateProcedure,
-  generateRouterImport,
-  generateRouterSchemaImports,
-  generateShieldImport,
-  generatetRPCImport,
-  getInputTypeByOpName,
-  getModelsGenConfig,
-  getRouterSchemaImportByOpName,
-  resolveModelsComments,
+    generateBaseRouter,
+    generateCreateRouterImport,
+    generateProcedure,
+    generateRouterImport,
+    generateRouterSchemaImports,
+    generateShieldImport,
+    generatetRPCImport,
+    getInputTypeByOpName,
+    getModelsGenConfig,
+    getRouterSchemaImportByOpName,
+    resolveModelsComments,
 } from './helpers';
 import { project } from './project';
 import getRelativePath from './utils/getRelativePath';
@@ -795,10 +795,10 @@ export function makeServices(ctx: Context) {
       config,
     });
 
-    // Add Prisma import for payload types (needed for include/select type inference)
+    // Add Prisma import for payload types/Args types used in casts
     modelRouter.addImportDeclaration({
       moduleSpecifier: '@prisma/client',
-      namespaceImport: 'Prisma',
+      namedImports: ['Prisma'],
     });
 
     if (config.withServices) {

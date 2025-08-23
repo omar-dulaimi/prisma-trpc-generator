@@ -223,29 +223,39 @@ export function generateBaseRouter(
 // or $Result.GetResult for findMany with select/include), keeping parity with
 // node_modules/.prisma/client/index.d.ts without re-implementing the complex
 // conditional types Prisma uses internally.
-const getReturnTypeAnnotation = (_modelName: string, _opType: string): string => '';
+const getReturnTypeAnnotation = (): string => '';
 
 // Helper function to generate tRPC metadata for operations
-const generateMetadata = (modelName: string, opType: string, baseOpType: string, config: Config): string => {
+const generateMetadata = (
+  modelName: string,
+  opType: string,
+  baseOpType: string,
+  config: Config,
+): string => {
   if (!config.withMeta) {
     return ''; // No metadata if disabled
   }
-  
-  const metaConfig = typeof config.withMeta === 'object' ? config.withMeta : { 
-    openapi: true, 
-    auth: false, 
-    description: true,
-    defaultMeta: {}
-  };
-  
-  const metadata: Record<string, any> = { ...metaConfig.defaultMeta };
-  
+
+  const metaConfig =
+    typeof config.withMeta === 'object'
+      ? config.withMeta
+      : {
+          openapi: true,
+          auth: false,
+          description: true,
+          defaultMeta: {},
+        };
+
+  const metadata: Record<string, unknown> = { ...metaConfig.defaultMeta };
+
   // Generate OpenAPI metadata
   if (metaConfig.openapi) {
     const isQuery = getProcedureTypeByOpName(baseOpType) === 'query';
     const method = isQuery ? 'GET' : 'POST';
-    const operationName = config.showModelNameInProcedure ? `${baseOpType}${modelName}` : baseOpType;
-    
+    const operationName = config.showModelNameInProcedure
+      ? `${baseOpType}${modelName}`
+      : baseOpType;
+
     metadata.openapi = {
       method,
       path: `/${modelName.toLowerCase()}/${operationName}`,
@@ -253,26 +263,26 @@ const generateMetadata = (modelName: string, opType: string, baseOpType: string,
       summary: getOperationDescription(modelName, baseOpType),
     };
   }
-  
+
   // Generate auth metadata
   if (metaConfig.auth && config.auth !== false) {
     metadata.auth = {
       required: config.withMiddleware || config.withShield,
     };
   }
-  
+
   // Generate description
   if (metaConfig.description) {
     metadata.description = getOperationDescription(modelName, baseOpType);
   }
-  
+
   return `.meta(${JSON.stringify(metadata, null, 2)})`;
 };
 
 // Helper function to get human-readable operation descriptions
 const getOperationDescription = (modelName: string, opType: string): string => {
   const model = modelName.toLowerCase();
-  
+
   switch (opType) {
     case 'findMany':
       return `Find multiple ${model} records`;
@@ -324,13 +334,13 @@ export function generateProcedure(
     // Ensure 'orderBy' key exists in the argument type to satisfy Prisma's groupBy constraints
     input = '{ ...input, orderBy: input.orderBy }';
   }
-  
+
   // Let Prisma infer the return type for maximum compatibility with its client types
-  const returnTypeAnnotation = getReturnTypeAnnotation(modelName, baseOpType);
-  
+  const returnTypeAnnotation = getReturnTypeAnnotation();
+
   // Get metadata for the procedure (if enabled)
   const metadataCall = generateMetadata(modelName, opType, baseOpType, config);
-  
+
   // For groupBy, pass the full input (schema aligns with Prisma.GroupByArgs)
   const procHeader = `${
     config.showModelNameInProcedure ? name : nameWithoutModel
@@ -340,12 +350,13 @@ export function generateProcedure(
   )}`;
 
   // Determine Prisma Args type for this operation to keep input strongly typed at call-site
-  const prismaArgsType = getPrismaArgsTypeByOpName(opType, modelName);
+  const prismaArgsType = getPrismaArgsTypeByOpName(opType);
   const prismaMethod = opType === 'count' ? 'count' : opType.replace('One', '');
   // Build a properly typed args expression; for groupBy we also re-expose orderBy
-  const argsExpr = nameWithoutModel === 'groupBy' && config.withZod
-    ? `{ ...(${input} as Prisma.${modelName}${prismaArgsType}), orderBy: (${input} as Prisma.${modelName}${prismaArgsType}).orderBy }`
-    : `${input} as Prisma.${modelName}${prismaArgsType}`;
+  const argsExpr =
+    nameWithoutModel === 'groupBy' && config.withZod
+      ? `{ ...(${input} as Prisma.${modelName}${prismaArgsType}), orderBy: (${input} as Prisma.${modelName}${prismaArgsType}).orderBy }`
+      : `${input} as Prisma.${modelName}${prismaArgsType}`;
 
   if (!config.withServices) {
     sourceFile.addStatements(/* ts */ `${procHeader}(async ({ ctx, input })${returnTypeAnnotation} => {
@@ -460,10 +471,7 @@ export const getInputTypeByOpName = (opName: string, modelName: string) => {
 };
 
 // Map an operation name to its corresponding Prisma Args type suffix
-export const getPrismaArgsTypeByOpName = (
-  opName: string,
-  modelName: string,
-): string => {
+export const getPrismaArgsTypeByOpName = (opName: string): string => {
   // Normalize names that end with "One"
   const isOrThrow = /OrThrow$/.test(opName);
   const norm = opName.replace(/One$/, '').replace(/OrThrow$/, '');

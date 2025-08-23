@@ -186,11 +186,16 @@ export async function generate(options: GeneratorOptions) {
   // Resolve Prisma Client import path respecting custom output path if provided
   let prismaClientAbsPath: string | null = null;
   try {
-    const outputField = (prismaClientProvider as any)?.output as
+    const outputField = (
+      prismaClientProvider as unknown as {
+        output?: { fromEnvVar: string | null; value: string | null } | null;
+      }
+    )?.output as
       | { fromEnvVar: string | null; value: string | null }
       | undefined;
     // Only treat as custom if user explicitly set a value in schema
-    const rawClientOut = outputField && outputField.value ? outputField.value : null;
+    const rawClientOut =
+      outputField && outputField.value ? outputField.value : null;
     if (rawClientOut) {
       prismaClientAbsPath = path.isAbsolute(rawClientOut)
         ? rawClientOut
@@ -337,7 +342,8 @@ export async function generate(options: GeneratorOptions) {
       undefined,
       { overwrite: true },
     );
-  const prismaClientImportForServices = resolveClientImportFrom(servicesDirAbs);
+    const prismaClientImportForServices =
+      resolveClientImportFrom(servicesDirAbs);
     baseServiceFile.addStatements(/* ts */ `
 // @generated
 import type { Prisma, PrismaClient } from '${prismaClientImportForServices}';
@@ -389,8 +395,8 @@ type PrismaClientModels = {
     }
 
     // Types from Prisma Client
-  const prismaClientImportForServicesIndex = prismaClientImportForServices;
-  indexFile.addStatements(/* ts */ `
+    const prismaClientImportForServicesIndex = prismaClientImportForServices;
+    indexFile.addStatements(/* ts */ `
 import type { Prisma } from '${prismaClientImportForServicesIndex}';
 import { BaseService } from './BaseService';
 `);

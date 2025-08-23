@@ -154,7 +154,7 @@ model User {
   email String  @unique /// @zod.string.email()
   name  String? /// @zod.string.min(1).max(100)
   age   Int?    /// @zod.number.int().min(0).max(120)
-  
+
   posts Post[]
 }
 
@@ -163,7 +163,7 @@ model Post {
   title     String   /// @zod.string.min(1).max(255, { message: "Title must be shorter than 256 characters" })
   content   String?  /// @zod.string.max(10000)
   published Boolean  @default(false)
-  
+
   author   User? @relation(fields: [authorId], references: [id])
   authorId Int?
 }

@@ -217,6 +217,125 @@ export function generateBaseRouter(
   }
 }
 
+// Helper function to determine if an operation supports include/select
+const supportsIncludeSelect = (opType: string): boolean => {
+  const supportedOps = [
+    'findUnique',
+    'findFirst', 
+    'findMany',
+    'createOne',
+    'updateOne',
+    'upsertOne',
+    'deleteOne'
+  ];
+  return supportedOps.includes(opType);
+};
+
+// Helper function to get the proper return type annotation for operations that support include/select
+const getReturnTypeAnnotation = (modelName: string, opType: string): string => {
+  if (!supportsIncludeSelect(opType)) {
+    return ''; // No annotation needed for operations that don't support include/select
+  }
+  
+  const capitalizedModelName = modelName;
+  
+  // For operations that return single records
+  if (['findUnique', 'findFirst', 'createOne', 'updateOne', 'upsertOne', 'deleteOne'].includes(opType)) {
+    return `: Promise<Prisma.${capitalizedModelName}GetPayload<typeof input> | null>`;
+  }
+  
+  // For operations that return arrays (findMany)
+  if (opType === 'findMany') {
+    return `: Promise<Prisma.${capitalizedModelName}GetPayload<typeof input>[]>`;
+  }
+  
+  return '';
+};
+
+// Helper function to generate tRPC metadata for operations
+const generateMetadata = (modelName: string, opType: string, baseOpType: string, config: Config): string => {
+  if (!config.withMeta) {
+    return ''; // No metadata if disabled
+  }
+  
+  const metaConfig = typeof config.withMeta === 'object' ? config.withMeta : { 
+    openapi: true, 
+    auth: false, 
+    description: true,
+    defaultMeta: {}
+  };
+  
+  const metadata: Record<string, any> = { ...metaConfig.defaultMeta };
+  
+  // Generate OpenAPI metadata
+  if (metaConfig.openapi) {
+    const isQuery = getProcedureTypeByOpName(baseOpType) === 'query';
+    const method = isQuery ? 'GET' : 'POST';
+    const operationName = config.showModelNameInProcedure ? `${baseOpType}${modelName}` : baseOpType;
+    
+    metadata.openapi = {
+      method,
+      path: `/${modelName.toLowerCase()}/${operationName}`,
+      tags: [modelName],
+      summary: getOperationDescription(modelName, baseOpType),
+    };
+  }
+  
+  // Generate auth metadata
+  if (metaConfig.auth && config.auth !== false) {
+    metadata.auth = {
+      required: config.withMiddleware || config.withShield,
+    };
+  }
+  
+  // Generate description
+  if (metaConfig.description) {
+    metadata.description = getOperationDescription(modelName, baseOpType);
+  }
+  
+  return `.meta(${JSON.stringify(metadata, null, 2)})`;
+};
+
+// Helper function to get human-readable operation descriptions
+const getOperationDescription = (modelName: string, opType: string): string => {
+  const model = modelName.toLowerCase();
+  
+  switch (opType) {
+    case 'findMany':
+      return `Find multiple ${model} records`;
+    case 'findUnique':
+      return `Find a unique ${model} record`;
+    case 'findFirst':
+      return `Find the first ${model} record`;
+    case 'createOne':
+      return `Create a new ${model} record`;
+    case 'createMany':
+      return `Create multiple ${model} records`;
+    case 'createManyAndReturn':
+      return `Create multiple ${model} records and return them`;
+    case 'updateOne':
+      return `Update a ${model} record`;
+    case 'updateMany':
+      return `Update multiple ${model} records`;
+    case 'updateManyAndReturn':
+      return `Update multiple ${model} records and return them`;
+    case 'deleteOne':
+      return `Delete a ${model} record`;
+    case 'deleteMany':
+      return `Delete multiple ${model} records`;
+    case 'upsertOne':
+      return `Create or update a ${model} record`;
+    case 'aggregate':
+      return `Aggregate ${model} records`;
+    case 'groupBy':
+      return `Group ${model} records`;
+    case 'count':
+      return `Count ${model} records`;
+    default:
+      return `Perform ${opType} operation on ${model}`;
+  }
+};
+
 export function generateProcedure(
   sourceFile: SourceFile,
   name: string,
@@ -232,16 +351,23 @@ export function generateProcedure(
     // Ensure 'orderBy' key exists in the argument type to satisfy Prisma's groupBy constraints
     input = '{ ...input, orderBy: input.orderBy }';
   }
+  
+  // Get the return type annotation for operations that support include/select
+  const returnTypeAnnotation = getReturnTypeAnnotation(modelName, baseOpType);
+  
+  // Get metadata for the procedure (if enabled)
+  const metadataCall = generateMetadata(modelName, opType, baseOpType, config);
+  
   // For groupBy, pass the full input (schema aligns with Prisma.GroupByArgs)
   const procHeader = `${
     config.showModelNameInProcedure ? name : nameWithoutModel
-  }: ${getProcedureName(config)}
+  }: ${getProcedureName(config)}${metadataCall}
   ${config.withZod ? `.input(${typeName})` : ''}.${getProcedureTypeByOpName(
     baseOpType,
   )}`;
 
   if (!config.withServices) {
-    sourceFile.addStatements(/* ts */ `${procHeader}(async ({ ctx, input }) => {
+    sourceFile.addStatements(/* ts */ `${procHeader}(async ({ ctx, input })${returnTypeAnnotation} => {
     const ${name} = await ctx.prisma.${uncapitalizeFirstLetter(
       modelName,
     )}.${opType === 'count' ? 'count' : opType.replace('One', '')}(${input});
@@ -249,7 +375,7 @@ export function generateProcedure(
   }),`);
   } else {
     const methodName = opType === 'count' ? 'count' : opType.replace('One', '');
-    sourceFile.addStatements(/* ts */ `${procHeader}(async ({ ctx, input }) => {
+    sourceFile.addStatements(/* ts */ `${procHeader}(async ({ ctx, input })${returnTypeAnnotation} => {
     const services = makeServices(ctx);
     const ${name} = await services.${uncapitalizeFirstLetter(modelName)}.${methodName}(${input});
     return ${name};

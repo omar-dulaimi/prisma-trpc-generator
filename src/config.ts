@@ -9,6 +9,17 @@ const booleanLike = z
 const configMiddleware = z.union([booleanLike, z.string()]);
 const configShield = z.union([booleanLike, z.string()]);
 
+// Metadata configuration for tRPC procedures
+const metaConfig = z.object({
+  openapi: booleanLike.optional().default(true), // Generate OpenAPI-compatible metadata
+  auth: booleanLike.optional().default(false), // Generate authentication metadata
+  description: booleanLike.optional().default(true), // Generate procedure descriptions
+  customPath: z.string().optional(), // Path to custom metadata configuration file
+  defaultMeta: z.record(z.string(), z.any()).optional().default({}), // Default metadata applied to all procedures
+});
+
+const configMeta = z.union([booleanLike, metaConfig]);
+
 // Define model actions directly since DMMF.ModelAction is not available at runtime
 const ModelAction = {
   findFirst: 'findFirst',
@@ -75,6 +86,13 @@ export const configSchema = z.object({
   // README: default false
   withShield: configShield.optional().default(false),
   withZod: booleanLike.optional().default(true),
+  // Date/DateTime field handling strategy for Zod schemas
+  dateTimeStrategy: z
+    .enum(['date', 'coerce', 'isoString'])
+    .optional()
+    .default('date'),
+  // tRPC metadata support for OpenAPI, auth, descriptions, etc.
+  withMeta: configMeta.optional().default(false),
   contextPath: z.string().default('../../../../src/context'),
   // README default
   trpcOptionsPath: z.string().optional().default('../../../../src/trpcOptions'),

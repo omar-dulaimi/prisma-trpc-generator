@@ -112,11 +112,11 @@ export async function generate(options: GeneratorOptions) {
         ...options.generator,
         // Redirect the zod generator's output to our schemas folder
         output: { fromEnvVar: null, value: zodOutput } as EnvValue,
-        // Keep the rest of the config the same
+        // Keep the rest of the config the same, but add dateTimeStrategy
         config: {
           ...options.generator.config,
-          output: { fromEnvVar: null, value: zodOutput } as EnvValue,
-        },
+          dateTimeStrategy: config.dateTimeStrategy,
+        } as { [key: string]: string | string[] },
       },
     } as GeneratorOptions);
     // Ensure schemas directory exists and is not empty for tests that assert presence
@@ -793,6 +793,12 @@ export function makeServices(ctx: Context) {
     generateCreateRouterImport({
       sourceFile: modelRouter,
       config,
+    });
+
+    // Add Prisma import for payload types (needed for include/select type inference)
+    modelRouter.addImportDeclaration({
+      moduleSpecifier: '@prisma/client',
+      namespaceImport: 'Prisma',
     });
 
     if (config.withServices) {

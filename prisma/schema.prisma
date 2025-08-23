@@ -15,7 +15,9 @@ datasource db {
 
 model User {
   id    Int     @id @default(autoincrement())
+  /// @zod.email()
   email String  @unique
+  /// @zod.min(1).max(100)
   name  String?
   posts Post[]
   books Book[]

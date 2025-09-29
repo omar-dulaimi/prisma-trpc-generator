@@ -74,7 +74,7 @@
     "typescript": "^5.9.2",
     "vite": "7.1.5",
     "vitest": "^3.2.4",
-    "zod": "^4.1.1"
+    "zod": "^4.1.11"
   },
   "bugs": {
     "url": "https://github.com/omar-dulaimi/prisma-trpc-generator/issues"

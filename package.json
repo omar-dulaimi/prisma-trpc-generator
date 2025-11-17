@@ -58,7 +58,7 @@
     "@types/pluralize": "^0.0.33",
     "@typescript-eslint/eslint-plugin": "^8.46.4",
     "@typescript-eslint/parser": "^8.46.4",
-    "@vitest/coverage-v8": "^4.0.8",
+    "@vitest/coverage-v8": "^4.0.9",
     "conventional-changelog-conventionalcommits": "^9.1.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",

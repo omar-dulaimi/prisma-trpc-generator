@@ -88,8 +88,8 @@ importers:
         specifier: ^6.19.0
         version: 6.19.0(magicast@0.3.5)(typescript@5.9.3)
       prisma-zod-generator:
-        specifier: ^1.31.7
-        version: 1.31.7(magicast@0.3.5)(prisma@6.19.0(magicast@0.3.5)(typescript@5.9.3))(typescript@5.9.3)(zod@4.1.12)
+        specifier: ^1.32.1
+        version: 1.32.1(magicast@0.3.5)(prisma@6.19.0(magicast@0.3.5)(typescript@5.9.3))(typescript@5.9.3)(zod@4.1.12)
       semantic-release:
         specifier: ^25.0.2
         version: 25.0.2(typescript@5.9.3)
@@ -1775,8 +1775,8 @@ packages:
   js-tokens@9.0.1:
     resolution: {integrity: sha512-mxa9E9ITFOt0ban3j6L5MpjwegGz6lBQmM1IJkWeBZGcMxto50+eWdjC/52xDbS2vy0k7vIMK0Fe2wfL9OQSpQ==}
 
-  js-yaml@4.1.0:
-    resolution: {integrity: sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==}
+  js-yaml@4.1.1:
+    resolution: {integrity: sha512-qQKT4zQxXl8lLwBtHMWwaTcGfFOZviOJet3Oy/xmGk2gZH677CJM9EvtfdSkgWcATZhj/55JZ0rmy3myCT5lsA==}
     hasBin: true
 
   json-buffer@3.0.1:
@@ -2272,8 +2272,8 @@ packages:
     resolution: {integrity: sha512-GRgpsAUFw4sUaDS9jnwyDuac069w+oSh31AJazcrbQm+6KDt+lamw2i+4u6w5/Uubx6ZGL2rS2B3MR9OHoE0pQ==}
     hasBin: true
 
-  prisma-zod-generator@1.31.7:
-    resolution: {integrity: sha512-S/GWlJy+ii8Os0SIe+g1Is1ZEDQ+HtWLuB9eRipx4l2IbXprSEKNZFoRQTAnBRt6TFPTDVUIVAgHUbOupt/B7Q==}
+  prisma-zod-generator@1.32.1:
+    resolution: {integrity: sha512-3LrvaQoIs+HQ6/IMaNpUctaVa/BjMJK+rGfLh5Qn8NI9te2Ig1sxBOmBQM9Q73qExPTDyGUZhBWpP30IB5HEIw==}
     engines: {node: '>=18.18.0'}
     hasBin: true
     peerDependencies:
@@ -3065,7 +3065,7 @@ snapshots:
       globals: 14.0.0
       ignore: 5.3.2
       import-fresh: 3.3.1
-      js-yaml: 4.1.0
+      js-yaml: 4.1.1
       minimatch: 3.1.2
       strip-json-comments: 3.1.1
     transitivePeerDependencies:
@@ -3967,7 +3967,7 @@ snapshots:
     dependencies:
       env-paths: 2.2.1
       import-fresh: 3.3.1
-      js-yaml: 4.1.0
+      js-yaml: 4.1.1
       parse-json: 5.2.0
     optionalDependencies:
       typescript: 5.9.3
@@ -4621,7 +4621,7 @@ snapshots:
 
   js-tokens@9.0.1: {}
 
-  js-yaml@4.1.0:
+  js-yaml@4.1.1:
     dependencies:
       argparse: 2.0.1
 
@@ -5005,7 +5005,7 @@ snapshots:
       - prisma
       - typescript
 
-  prisma-zod-generator@1.31.7(magicast@0.3.5)(prisma@6.19.0(magicast@0.3.5)(typescript@5.9.3))(typescript@5.9.3)(zod@4.1.12):
+  prisma-zod-generator@1.32.1(magicast@0.3.5)(prisma@6.19.0(magicast@0.3.5)(typescript@5.9.3))(typescript@5.9.3)(zod@4.1.12):
     dependencies:
       '@prisma/client': 6.19.0(prisma@6.19.0(magicast@0.3.5)(typescript@5.9.3))(typescript@5.9.3)
       '@prisma/generator-helper': 6.19.0
@@ -5016,7 +5016,7 @@ snapshots:
       ajv-formats: 3.0.1(ajv@8.17.1)
       cors: 2.8.5
       express: 5.1.0
-      js-yaml: 4.1.0
+      js-yaml: 4.1.1
       node-fetch: 3.3.2
       prettier: 3.6.2
       tslib: 2.8.1

@@ -54,7 +54,7 @@
     "@semantic-release/npm": "^13.1.2",
     "@semantic-release/release-notes-generator": "^14.1.0",
     "@trpc/server": "^11.7.1",
-    "@types/node": "^24.10.0",
+    "@types/node": "^24.10.1",
     "@types/pluralize": "^0.0.33",
     "@typescript-eslint/eslint-plugin": "^8.46.4",
     "@typescript-eslint/parser": "^8.46.4",

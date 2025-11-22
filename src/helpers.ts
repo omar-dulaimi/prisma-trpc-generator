@@ -183,13 +183,15 @@ export function generateBaseRouter(
     });
   }
 
-  // Base public procedure
-  if (config.withRequestId || config.withLogging) {
-    sourceFile.addStatements(/* ts */ `
+  // Base public procedure (skip if auth is enabled, as it will be defined in the auth section)
+  if (config.auth === false) {
+    if (config.withRequestId || config.withLogging) {
+      sourceFile.addStatements(/* ts */ `
     export const publicProcedure = t.procedure.use(requestIdMiddleware); `);
-  } else {
-    sourceFile.addStatements(/* ts */ `
+    } else {
+      sourceFile.addStatements(/* ts */ `
     export const publicProcedure = t.procedure; `);
+    }
   }
 
   if (middlewares.length > 0) {
@@ -449,7 +451,7 @@ export const getInputTypeByOpName = (opName: string, modelName: string) => {
       inputType = `${modelName}UpdateManyAndReturnSchema`;
       break;
     case 'upsertOne':
-      inputType = `${modelName}UpsertSchema`;
+      inputType = `${modelName}UpsertOneSchema`;
       break;
     case 'aggregate':
       inputType = `${modelName}AggregateSchema`;

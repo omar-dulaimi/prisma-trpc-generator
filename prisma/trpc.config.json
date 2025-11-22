@@ -3,6 +3,7 @@
   "isGenerateInclude": true,
   "withMiddleware": "./middleware",
   "withShield": "./shield",
+  "withServices": true,
   "contextPath": "./context",
   "trpcOptionsPath": "./trpcOptions",
   "auth": true,

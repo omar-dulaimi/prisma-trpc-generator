@@ -2,23 +2,23 @@
 
 ### ⚠ BREAKING CHANGES
 
-* requires Prisma 7.x with new prisma-client generator
+- requires Prisma 7.x with new prisma-client generator
 
 ### 🐛 Bug Fixes
 
-* add missing @eslint/js dependency ([a6622b5](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/a6622b5f8ec3cbd6686171b68770a794fb8465a6))
-* **ci:** add DATABASE_URL env var for prisma generate ([bcc5e1f](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/bcc5e1fcc56e72bf3d8efff60406f7e648d65a9c))
-* **ci:** install pnpm before setup-node caching ([f67c642](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/f67c6422018623d86ab76de1e4a05ea588367e0f))
-* **ci:** install pnpm before setup-node in semantic-release ([0eee318](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/0eee318bbf7f8c7a4b37ce3ebbd05f087373eb0c))
-* **ci:** remove invalid --dry-run flag from pnpm pack ([cda29a3](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/cda29a3149bdee0a2e740faf60e491ee7a7bf2f2))
-* normalize SQLite URL formatting and improve router generation logic ([fa30944](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/fa30944cf61b2b3cc709659a21774f0b25fa406c))
-* support new prisma-client generator and filter unavailable schemas ([cb436d0](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/cb436d07f50dc2f96419a28e69fa9506357c46e9))
-* update context to import PrismaClient from new generator path ([6e92746](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/6e92746954448bbcb5452aa65139c4398543cc9d))
+- add missing @eslint/js dependency ([a6622b5](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/a6622b5f8ec3cbd6686171b68770a794fb8465a6))
+- **ci:** add DATABASE_URL env var for prisma generate ([bcc5e1f](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/bcc5e1fcc56e72bf3d8efff60406f7e648d65a9c))
+- **ci:** install pnpm before setup-node caching ([f67c642](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/f67c6422018623d86ab76de1e4a05ea588367e0f))
+- **ci:** install pnpm before setup-node in semantic-release ([0eee318](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/0eee318bbf7f8c7a4b37ce3ebbd05f087373eb0c))
+- **ci:** remove invalid --dry-run flag from pnpm pack ([cda29a3](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/cda29a3149bdee0a2e740faf60e491ee7a7bf2f2))
+- normalize SQLite URL formatting and improve router generation logic ([fa30944](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/fa30944cf61b2b3cc709659a21774f0b25fa406c))
+- support new prisma-client generator and filter unavailable schemas ([cb436d0](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/cb436d07f50dc2f96419a28e69fa9506357c46e9))
+- update context to import PrismaClient from new generator path ([6e92746](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/6e92746954448bbcb5452aa65139c4398543cc9d))
 
 ### 📚 Documentation
 
-* update documentation and config files ([436918d](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/436918de572408047c8f390077f6fef12f9e7618))
-* update service examples for new generator ([c685cd2](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/c685cd2b0daa186694c671d9a4149a3e8ddb3ce1))
+- update documentation and config files ([436918d](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/436918de572408047c8f390077f6fef12f9e7618))
+- update service examples for new generator ([c685cd2](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/c685cd2b0daa186694c671d9a4149a3e8ddb3ce1))
 
 ## [2.4.0](https://github.com/omar-dulaimi/prisma-trpc-generator/compare/v2.3.0...v2.4.0) (2025-08-23)
 

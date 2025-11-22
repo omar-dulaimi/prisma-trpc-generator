@@ -68,16 +68,12 @@ export function generateRouters(
     /provider\s*=\s*"node\s+\.\/lib\/generator\.js"/,
     'provider = "node ../../../lib/generator.js"',
   );
-  // Override output path to the temp outDir (stable path ./generated)
-  if (/output\s*=\s*"[^"]+"/.test(patched)) {
-    patched = patched.replace(/output\s*=\s*"[^"]+"/, 'output = "./generated"');
-  } else {
-    // insert output if missing inside generator block
-    patched = patched.replace(
-      /(generator\s+trpc\s*\{)/,
-      '$1\n  output = "./generated"',
-    );
-  }
+  patched = patched.replace(/(generator\s+trpc\s*\{[\s\S]*?\})/, (block) => {
+    if (/output\s*=/.test(block)) {
+      return block.replace(/output\s*=\s*"[^"]+"/, 'output = "./generated"');
+    }
+    return block.replace('{', '{\n  output = "./generated"');
+  });
   // Adjust datasource url to point to local dev.db in tempDir when using sqlite
   patched = patched.replace(
     /url\s*=\s*"file:\.\/dev\.db"/,
@@ -114,11 +110,19 @@ export function generateRouters(
   const tempSchemaPath = join(tempDir, 'schema.prisma');
   fs.writeFileSync(tempSchemaPath, patched, 'utf8');
 
+  // Write prisma.config.ts to ensure Prisma CLI knows how to connect
+  const prismaConfig = `import 'dotenv/config';\nimport { defineConfig, env } from 'prisma/config';\n\nexport default defineConfig({\n  schema: './schema.prisma',\n  datasource: {\n    url: env('DATABASE_URL'),\n  },\n});\n`;
+  fs.writeFileSync(join(tempDir, 'prisma.config.ts'), prismaConfig, 'utf8');
+
   // Run prisma generate in the tempDir
   try {
     execSync(`npx prisma generate --schema ${tempSchemaPath}`, {
       stdio: 'pipe',
       cwd: tempDir,
+      env: {
+        ...process.env,
+        DATABASE_URL: 'file:./dev.db',
+      },
     });
   } finally {
     // keep tempDir for test inspection; clean only ephemeral config if any external left

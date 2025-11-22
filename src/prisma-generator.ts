@@ -24,6 +24,9 @@ import { project } from './project';
 import getRelativePath from './utils/getRelativePath';
 import removeDir from './utils/removeDir';
 
+type ZodGeneratorOptions = Parameters<typeof PrismaZodGenerator>[0];
+type ShieldGeneratorOptions = Parameters<typeof PrismaTrpcShieldGenerator>[0];
+
 export async function generate(options: GeneratorOptions) {
   const rawOutput = parseEnvValue(options.generator.output as EnvValue);
   // Base resolution: like Prisma would (relative to schema file)
@@ -118,7 +121,7 @@ export async function generate(options: GeneratorOptions) {
           dateTimeStrategy: config.dateTimeStrategy,
         } as { [key: string]: string | string[] },
       },
-    } as GeneratorOptions);
+    } as unknown as ZodGeneratorOptions);
     // Ensure schemas directory exists and is not empty for tests that assert presence
     try {
       await fs.mkdir(zodOutput, { recursive: true });
@@ -146,7 +149,7 @@ export async function generate(options: GeneratorOptions) {
           contextPath: config.contextPath,
         },
       },
-    });
+    } as unknown as ShieldGeneratorOptions);
   }
 
   // Prefer the new prisma-client generator when present; fallback to legacy
@@ -204,17 +207,25 @@ export async function generate(options: GeneratorOptions) {
   } catch {
     prismaClientAbsPath = null;
   }
+  // Check if using new prisma-client generator (vs legacy prisma-client-js)
+  const isNewPrismaClient =
+    prismaClientProvider &&
+    parseEnvValue(prismaClientProvider.provider) === 'prisma-client';
+
   const resolveClientImportFrom = (fromDirAbs: string) => {
     if (!prismaClientAbsPath) return '@prisma/client';
     const norm = prismaClientAbsPath.split(path.sep).join(path.posix.sep);
-    // If Prisma Client path points to the official package, prefer the bare package import
-    const isDefaultPkg = norm.includes('/@prisma/client');
+    // If Prisma Client path points to the official package or .prisma cache, prefer the bare package import
+    const isDefaultPkg =
+      norm.includes('/@prisma/client') || norm.includes('/.prisma/client');
     if (isDefaultPkg) return '@prisma/client';
     const rel = path
       .relative(fromDirAbs, prismaClientAbsPath)
       .split(path.sep)
       .join(path.posix.sep);
-    return rel.startsWith('.') ? rel : `./${rel}`;
+    const basePath = rel.startsWith('.') ? rel : `./${rel}`;
+    // New prisma-client generator exports from client.ts, not index.ts
+    return isNewPrismaClient ? `${basePath}/client` : basePath;
   };
   const createRouter = project.createSourceFile(
     path.resolve(outputDir, 'routers', 'helpers', 'createRouter.ts'),
@@ -327,11 +338,20 @@ export async function generate(options: GeneratorOptions) {
       `\nexport const protectedProcedure = publicProcedure.use(t.middleware(async ({ ctx, next }) => {\n  ensureAuth(ctx);\n  return next();\n}));\n`,
     );
     createRouter.addStatements(
-      `\nexport const protectedProcedure = publicProcedure\n  .use(authMiddleware)\n  .use(t.middleware(async ({ ctx, next }) => {\n    ensureAuth(ctx);\n    return next();\n  }));\n`,
-    );
-    createRouter.addStatements(
       `\nexport function roleProcedure(roles: string[]) {\n  return protectedProcedure.use(t.middleware(async ({ ctx, next }) => {\n    ensureRole(ctx, roles);\n    return next();\n  }));\n}\n`,
     );
+  }
+
+  // Preload schema filenames once to avoid repeated fs.stat calls (needed for services and routers)
+  const schemasDirAbs = path.resolve(outputDir, 'schemas');
+  let availableSchemaFiles: Set<string> | null = null;
+  if (config.withZod) {
+    try {
+      const files = await fs.readdir(schemasDirAbs);
+      availableSchemaFiles = new Set(files);
+    } catch {
+      availableSchemaFiles = new Set();
+    }
   }
 
   // If services are enabled, create typed BaseService and per-model services + registry
@@ -406,14 +426,21 @@ type TenantContext = Context & { tenantId?: string | number };
 `);
 
     // Import Context directly from configured path
-    const contextImportFromServices = getRelativePath(
-      path.resolve(outputDir, config.serviceDir),
-      config.contextPath,
-      true,
-      options.schemaPath,
-    );
+    // Calculate relative path from services directory to context file
+    const servicesDirForContext = path.resolve(outputDir, config.serviceDir);
+    const schemaDir = path.dirname(options.schemaPath);
+    const contextAbsPath = path.isAbsolute(config.contextPath)
+      ? config.contextPath
+      : path.resolve(schemaDir, config.contextPath);
+    const contextImportFromServices = path
+      .relative(servicesDirForContext, contextAbsPath)
+      .split(path.sep)
+      .join(path.posix.sep);
+    const contextImportPath = contextImportFromServices.startsWith('.')
+      ? contextImportFromServices
+      : `./${contextImportFromServices}`;
     indexFile.addStatements(/* ts */ `
-import type { Context } from '${contextImportFromServices}';
+import type { Context } from '${contextImportPath}';
 `);
 
     // Prepare schemas import base for services if Zod is enabled
@@ -476,6 +503,11 @@ import type { Context } from '${contextImportFromServices}';
         ];
         for (const m of serviceMethods) {
           const op = toSchemaOp(m);
+          // Check if schema file exists for this operation
+          if (availableSchemaFiles) {
+            const fileName = `${op}${model.name}.schema.ts`;
+            if (!availableSchemaFiles.has(fileName)) continue;
+          }
           const base = servicesSchemasImportBase ?? '';
           const line = getRouterSchemaImportByOpName(op, model.name, base);
           if (line) importLines.add(line);
@@ -690,6 +722,32 @@ import type { Context } from '${contextImportFromServices}';
   }`;
       };
 
+      // Helper to check if a method's schema exists
+      const hasSchema = (method: string): boolean => {
+        if (!config.withZod || !availableSchemaFiles) return true;
+        const normalizeOp = (m: string) => {
+          switch (m) {
+            case 'findUniqueOrThrow':
+              return 'findUnique';
+            case 'findFirstOrThrow':
+              return 'findFirst';
+            case 'create':
+              return 'createOne';
+            case 'delete':
+              return 'deleteOne';
+            case 'update':
+              return 'updateOne';
+            case 'upsert':
+              return 'upsertOne';
+            default:
+              return m;
+          }
+        };
+        const op = normalizeOp(method);
+        const fileName = `${op}${model.name}.schema.ts`;
+        return availableSchemaFiles.has(fileName);
+      };
+
       const lines: string[] = [];
       lines.push(methodLine('findUnique', 'findUnique', 'FindUniqueArgs'));
       lines.push(
@@ -712,24 +770,30 @@ import type { Context } from '${contextImportFromServices}';
       lines.push(methodLine('groupBy', 'groupBy', 'GroupByArgs'));
       lines.push(methodLine('count', 'count', 'CountArgs'));
       lines.push(methodLine('create', 'create', 'CreateArgs'));
-      lines.push(
-        methodLine(
-          'createManyAndReturn',
-          'createManyAndReturn',
-          'CreateManyAndReturnArgs',
-        ),
-      );
+      // Only include createManyAndReturn if schema exists
+      if (hasSchema('createManyAndReturn')) {
+        lines.push(
+          methodLine(
+            'createManyAndReturn',
+            'createManyAndReturn',
+            'CreateManyAndReturnArgs',
+          ),
+        );
+      }
       lines.push(methodLine('createMany', 'createMany', 'CreateManyArgs'));
       lines.push(methodLine('delete', 'delete', 'DeleteArgs'));
       lines.push(methodLine('update', 'update', 'UpdateArgs'));
       lines.push(methodLine('deleteMany', 'deleteMany', 'DeleteManyArgs'));
-      lines.push(
-        methodLine(
-          'updateManyAndReturn',
-          'updateManyAndReturn',
-          'UpdateManyAndReturnArgs',
-        ),
-      );
+      // Only include updateManyAndReturn if schema exists
+      if (hasSchema('updateManyAndReturn')) {
+        lines.push(
+          methodLine(
+            'updateManyAndReturn',
+            'updateManyAndReturn',
+            'UpdateManyAndReturnArgs',
+          ),
+        );
+      }
       lines.push(methodLine('updateMany', 'updateMany', 'UpdateManyArgs'));
       lines.push(methodLine('upsert', 'upsert', 'UpsertArgs'));
 
@@ -773,18 +837,6 @@ export function makeServices(ctx: Context) {
 
   const routerStatements = [];
 
-  // Preload schema filenames once to avoid repeated fs.stat calls
-  const schemasDirAbs = path.resolve(outputDir, 'schemas');
-  let availableSchemaFiles: Set<string> | null = null;
-  if (config.withZod) {
-    try {
-      const files = await fs.readdir(schemasDirAbs);
-      availableSchemaFiles = new Set(files);
-    } catch {
-      availableSchemaFiles = new Set();
-    }
-  }
-
   for (const modelOperation of modelOperations) {
     const { model, ...operations } = modelOperation;
     if (hiddenModels.includes(model)) continue;
@@ -806,7 +858,7 @@ export function makeServices(ctx: Context) {
       }
       requestedExtras = filtered;
     }
-    const modelActions = [
+    let modelActions = [
       ...reportedOps,
       ...requestedExtras.filter((op) => !reportedOps.includes(op)),
     ].filter((opType) => {
@@ -815,6 +867,20 @@ export function makeServices(ctx: Context) {
         (action) => action === baseOpType,
       );
     });
+
+    // Filter out operations that don't have corresponding schema files
+    // (e.g., createManyAndReturn/updateManyAndReturn only exist for PostgreSQL/CockroachDB)
+    if (config.withZod && availableSchemaFiles) {
+      modelActions = modelActions.filter((opType) => {
+        const baseOpType = opType.replace('OrThrow', '');
+        let schemaOp = baseOpType;
+        if (baseOpType === 'findUniqueOrThrow') schemaOp = 'findUnique';
+        if (baseOpType === 'findFirstOrThrow') schemaOp = 'findFirst';
+        const fileName = `${schemaOp}${model}.schema.ts`;
+        return availableSchemaFiles.has(fileName);
+      });
+    }
+
     // selected operations computed in modelActions
     if (!modelActions.length) continue;
 

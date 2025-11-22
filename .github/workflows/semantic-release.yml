@@ -26,29 +26,22 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-          cache: 'npm'
+          node-version: '22.x'
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
 
       - name: Install dependencies
-        run: npm ci
-
-      - name: Install semantic-release dependencies
-        run: |
-          npm install --save-dev \
-            semantic-release \
-            @semantic-release/changelog \
-            @semantic-release/git \
-            @semantic-release/github \
-            @semantic-release/npm \
-            @semantic-release/commit-analyzer \
-            @semantic-release/release-notes-generator \
-            conventional-changelog-conventionalcommits
+        run: pnpm install --frozen-lockfile
 
       - name: Build and test
         run: |
-          npm run generate
-          npm run lint
-          npm test --silent
+          pnpm run generate
+          pnpm run lint
+          pnpm test --silent
 
       - name: Build package
         run: ./package.sh
@@ -57,4 +50,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release
+        run: pnpm exec semantic-release

@@ -15,6 +15,9 @@ Automatically generate fully implemented, type-safe tRPC routers from your Prism
   <a href="LICENSE">
     <img src="https://img.shields.io/npm/l/prisma-trpc-generator.svg?style=for-the-badge&color=purple" alt="License">
   </a>
+  <img src="https://img.shields.io/badge/Node.js-%E2%89%A5%2020.19.0%20(min)%20%E2%80%A2%2022.x%20(rec)-026e00?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js >= 20.19.0 (min) · 22.x (rec)">
+  <img src="https://img.shields.io/badge/Prisma-%E2%89%A5%207.0.0%20(min)%20%E2%80%A2%20Latest%207.x%20(rec)-0c344b?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma >= 7.0.0 (min) · Latest 7.x (rec)">
+  <img src="https://img.shields.io/badge/TypeScript-%E2%89%A5%205.4.0%20(min)%20%E2%80%A2%205.9.x%20(rec)-3178c6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript >= 5.4.0 (min) · 5.9.x (rec)">
 </p>
 
 > 🎯 Zero‑config • 🛡️ Type‑safe • ⚡ Fast • 🔧 Customizable
@@ -65,6 +68,14 @@ Automatically generate fully implemented, type-safe tRPC routers from your Prism
 
 ## 🚀 Quick start
 
+### Requirements
+
+| Component  | Minimum  | Recommended |
+| ---------- | -------- | ----------- |
+| Node.js    | 20.19.0  | 22.x        |
+| Prisma     | 7.0.0    | Latest 7.x  |
+| TypeScript | 5.4.0    | 5.9.x       |
+
 ### Install
 
 ```bash
@@ -77,6 +88,37 @@ yarn add prisma-trpc-generator
 # pnpm
 pnpm add prisma-trpc-generator
 ```
+
+### Configure Prisma 7
+
+1. Create `prisma.config.ts` at the repo root:
+
+   ```ts
+   import 'dotenv/config';
+   import { defineConfig, env } from 'prisma/config';
+
+   export default defineConfig({
+     schema: 'prisma/schema.prisma',
+     migrations: {
+       path: 'prisma/migrations',
+       seed: 'tsx prisma/seed.ts',
+     },
+     datasource: {
+       url: env('DATABASE_URL'),
+     },
+   });
+   ```
+
+2. Update your `generator client` block:
+
+   ```prisma
+   generator client {
+     provider = "prisma-client"
+     output   = "../node_modules/.prisma/client"
+   }
+   ```
+
+3. Set `DATABASE_URL` (e.g., `file:./prisma/dev.db`) in `.env` and instantiate `PrismaClient` with the adapter that matches your database (SQLite → `@prisma/adapter-better-sqlite3`, Postgres → `@prisma/adapter-pg`, etc.).
 
 ### Minimal setup
 
@@ -391,9 +433,14 @@ model InternalLog {
 
 ```ts
 // src/context.ts
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 
-const prisma = new PrismaClient();
+const adapter = new PrismaBetterSqlite3({
+  url: process.env.DATABASE_URL as ':memory:' | (string & {}),
+});
+const prisma = new PrismaClient({ adapter });
 
 export interface Context {
   prisma: PrismaClient;
@@ -581,22 +628,22 @@ git clone https://github.com/your-username/prisma-trpc-generator.git
 cd prisma-trpc-generator
 ```
 
-2. Install dependencies
+2. Install dependencies (requires Node.js 20.19.0+; 22.x recommended, this repo uses pnpm)
 
 ```bash
-npm install
+pnpm install
 ```
 
 3. Build/generate
 
 ```bash
-npm run generate
+pnpm run generate
 ```
 
 4. Run tests
 
 ```bash
-npm test
+pnpm test
 ```
 
 ### Testing
@@ -609,10 +656,10 @@ npm test
 Run specific test suites
 
 ```bash
-npm test --silent
-npm run test:integration
-npm run test:coverage
-npm run test:comprehensive
+pnpm test --silent
+pnpm run test:integration
+pnpm run test:coverage
+pnpm run test:comprehensive
 ```
 
 ### Contribution guidelines
@@ -626,8 +673,8 @@ npm run test:comprehensive
 ### Code style
 
 ```bash
-npm run lint
-npm run format
+pnpm run lint
+pnpm run format
 ```
 
 ### Release process

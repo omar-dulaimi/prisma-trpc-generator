@@ -67,6 +67,6 @@ module.exports = {
     },
   },
   esbuild: {
-    target: 'node18',
+    target: 'node20',
   },
 };

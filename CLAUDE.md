@@ -6,17 +6,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is **prisma-trpc-generator** - a Prisma generator that automates creating tRPC routers from Prisma schemas. It generates fully implemented tRPC routers with Zod input validation, middleware support, and optional tRPC Shield integration.
 
+## Environment
+
+- Node.js >= 20.19.0 (22.x recommended)
+- pnpm 10.15.1
+- Prisma CLI config lives in `prisma.config.ts` (datasource URL + migrations path)
+
 ## Development Commands
 
 ### Building and Testing
 
-- `npm run generate` - Compile TypeScript and run Prisma generate (for testing the generator itself)
+- `pnpm run generate` - Compile TypeScript and run Prisma generate (for testing the generator itself)
 - `tsc` - Compile TypeScript source code to JavaScript in `/lib` directory
-- `npx prisma generate` - Test the generator against the example schema in `/prisma`
+- `pnpm exec prisma generate` - Test the generator against the example schema in `/prisma`
 
 ### Publishing
 
-- `npm run package:publish` - Build and publish the package (runs `package.sh` script)
+- `pnpm run package:publish` - Build and publish the package (runs `package.sh` script)
 - `./package.sh` - Build script that compiles, creates package directory, and prepares for publishing
 
 ## Architecture

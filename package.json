@@ -10,16 +10,16 @@
     "prisma-trpc-generator": "lib/generator.js"
   },
   "scripts": {
-    "generate": "tsc && npx prisma generate",
-    "package:publish": "./package.sh && cd package && npm publish",
+    "generate": "tsc && pnpm exec prisma generate",
+    "package:publish": "./package.sh && cd package && pnpm publish --access public",
     "lint": "eslint src/ --fix",
     "lint:all": "eslint . --fix",
     "format": "prettier --write .",
-    "prerelease": "npm run generate && npm run lint",
+    "prerelease": "pnpm run generate && pnpm run lint",
     "test": "vitest run",
     "semantic-release": "semantic-release",
     "ci:test": "echo 'tests are temporarily disabled'",
-    "ci:build": "npm run generate",
+    "ci:build": "pnpm run generate",
     "prepare": "husky"
   },
   "author": {
@@ -38,9 +38,11 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@prisma/client": "^6.19.0",
-    "@prisma/generator-helper": "^6.19.0",
-    "@prisma/internals": "^6.19.0",
+    "@prisma/adapter-better-sqlite3": "^7.0.0",
+    "@prisma/client": "^7.0.0",
+    "@prisma/generator-helper": "^7.0.0",
+    "@prisma/internals": "^7.0.0",
+    "dotenv": "^17.2.3",
     "pluralize": "^8.0.0",
     "prisma-trpc-shield-generator": "0.2.1",
     "ts-morph": "^27.0.2",
@@ -54,31 +56,35 @@
     "@semantic-release/npm": "^13.1.2",
     "@semantic-release/release-notes-generator": "^14.1.0",
     "@trpc/server": "^11.7.1",
-    "@types/node": "^24.10.0",
+    "@types/node": "^24.10.1",
     "@types/pluralize": "^0.0.33",
-    "@typescript-eslint/eslint-plugin": "^8.46.4",
-    "@typescript-eslint/parser": "^8.46.4",
-    "@vitest/coverage-v8": "^4.0.8",
+    "@typescript-eslint/eslint-plugin": "^8.47.0",
+    "@typescript-eslint/parser": "^8.47.0",
+    "@vitest/coverage-v8": "^4.0.13",
     "conventional-changelog-conventionalcommits": "^9.1.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "expect-type": "^1.2.2",
     "husky": "^9.1.7",
     "prettier": "^3.6.2",
-    "prisma": "^6.19.0",
-    "prisma-zod-generator": "^1.31.7",
+    "prisma": "^7.0.0",
+    "prisma-zod-generator": "^2.1.2",
     "semantic-release": "^25.0.2",
     "trpc-shield": "^1.3.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "vite": "7.2.2",
-    "vitest": "^4.0.8",
+    "vite": "7.2.4",
+    "vitest": "^4.0.13",
     "zod": "^4.1.12"
   },
   "bugs": {
     "url": "https://github.com/omar-dulaimi/prisma-trpc-generator/issues"
   },
   "homepage": "https://github.com/omar-dulaimi/prisma-trpc-generator#readme",
-  "private": true
+  "private": true,
+  "packageManager": "pnpm@10.15.1",
+  "engines": {
+    "node": ">=20.19.0"
+  }
 }

@@ -34,6 +34,8 @@ jobs:
 
       - name: Build project
         run: pnpm run generate
+        env:
+          DATABASE_URL: 'file:./dev.db'
 
       # Type-check happens during build (tsc in npm run generate). No separate typecheck script.
 
@@ -84,6 +86,8 @@ jobs:
         run: |
           pnpm run generate
           ./package.sh
+        env:
+          DATABASE_URL: 'file:./dev.db'
 
       - name: Test package integrity
         run: |

@@ -92,7 +92,7 @@ jobs:
       - name: Test package integrity
         run: |
           cd package
-          pnpm pack --dry-run
+          pnpm pack
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v4

@@ -68,15 +68,12 @@ export function generateRouters(
     /provider\s*=\s*"node\s+\.\/lib\/generator\.js"/,
     'provider = "node ../../../lib/generator.js"',
   );
-  patched = patched.replace(
-    /(generator\s+trpc\s*\{[\s\S]*?\})/,
-    (block) => {
-      if (/output\s*=/.test(block)) {
-        return block.replace(/output\s*=\s*"[^"]+"/, 'output = "./generated"');
-      }
-      return block.replace('{', '{\n  output = "./generated"');
-    },
-  );
+  patched = patched.replace(/(generator\s+trpc\s*\{[\s\S]*?\})/, (block) => {
+    if (/output\s*=/.test(block)) {
+      return block.replace(/output\s*=\s*"[^"]+"/, 'output = "./generated"');
+    }
+    return block.replace('{', '{\n  output = "./generated"');
+  });
   // Adjust datasource url to point to local dev.db in tempDir when using sqlite
   patched = patched.replace(
     /url\s*=\s*"file:\.\/dev\.db"/,

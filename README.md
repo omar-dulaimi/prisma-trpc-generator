@@ -70,11 +70,11 @@ Automatically generate fully implemented, type-safe tRPC routers from your Prism
 
 ### Requirements
 
-| Component  | Minimum  | Recommended |
-| ---------- | -------- | ----------- |
-| Node.js    | 20.19.0  | 22.x        |
-| Prisma     | 7.0.0    | Latest 7.x  |
-| TypeScript | 5.4.0    | 5.9.x       |
+| Component  | Minimum | Recommended |
+| ---------- | ------- | ----------- |
+| Node.js    | 20.19.0 | 22.x        |
+| Prisma     | 7.0.0   | Latest 7.x  |
+| TypeScript | 5.4.0   | 5.9.x       |
 
 ### Install
 

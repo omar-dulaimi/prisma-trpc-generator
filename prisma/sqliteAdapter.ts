@@ -10,7 +10,7 @@ function normalizeSqliteUrl(raw?: string | null) {
   const absolutePath = path.isAbsolute(url)
     ? url
     : path.resolve(process.cwd(), url);
-  return (`file:${absolutePath}`) as string & {};
+  return `file:${absolutePath}` as string & {};
 }
 
 export function createSqliteAdapter(databaseUrl?: string) {

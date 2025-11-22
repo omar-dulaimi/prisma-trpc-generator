@@ -74,6 +74,11 @@ export function generateRouters(
     }
     return block.replace('{', '{\n  output = "./generated"');
   });
+  // Make client generator output relative to tempDir to avoid collisions between tests
+  patched = patched.replace(
+    /(generator\s+client\s*\{[\s\S]*?output\s*=\s*)"\.\.\/client"/,
+    '$1"./client"',
+  );
   // Adjust datasource url to point to local dev.db in tempDir when using sqlite
   patched = patched.replace(
     /url\s*=\s*"file:\.\/dev\.db"/,

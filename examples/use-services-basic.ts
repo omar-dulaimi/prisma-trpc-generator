@@ -1,10 +1,14 @@
-import { PrismaClient } from '@prisma/client';
+import 'dotenv/config';
+import { PrismaClient } from '../client/client';
 import type { Context } from '../prisma/context';
-import { makeServices } from '../prisma/generated/services';
+import { makeServices } from '../prisma/generated/services/index';
+import { createSqliteAdapter } from '../prisma/sqliteAdapter';
 
 async function main() {
   // Instantiate Prisma once for the request
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({
+    adapter: createSqliteAdapter(),
+  });
 
   // Minimal context shape that satisfies your project's Context type
   const ctx = { prisma, user: null } satisfies Context;

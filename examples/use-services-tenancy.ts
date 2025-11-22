@@ -1,7 +1,9 @@
 // Simple runtime example to demonstrate multi-tenant runs and soft-delete usage
-import { PrismaClient } from '@prisma/client';
+import 'dotenv/config';
+import { PrismaClient } from '../client/client';
 import type { Context } from '../prisma/context';
-import { makeServices } from '../prisma/generated/services';
+import { makeServices } from '../prisma/generated/services/index';
+import { createSqliteAdapter } from '../prisma/sqliteAdapter';
 
 const ANSI = {
   reset: '\x1b[0m',
@@ -138,7 +140,9 @@ async function runForTenant(prisma: PrismaClient, tenantId: number) {
 }
 
 async function main() {
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({
+    adapter: createSqliteAdapter(),
+  });
   try {
     console.log(hr('🚀 Multi-tenant run start'));
     // Run for multiple tenants and log separately

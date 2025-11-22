@@ -23,16 +23,16 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.15.1
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22.x'
           cache: 'pnpm'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.15.1
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -42,6 +42,8 @@ jobs:
           pnpm run generate
           pnpm run lint
           pnpm test --silent
+        env:
+          DATABASE_URL: 'file:./dev.db'
 
       - name: Build package
         run: ./package.sh

@@ -9,6 +9,7 @@ export type GenOverrides = Partial<{
   auth: boolean;
   postman: boolean;
   openapi: boolean;
+  trpcOptionsPath: string;
 }>;
 
 /**

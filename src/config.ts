@@ -94,8 +94,8 @@ export const configSchema = z.object({
   // tRPC metadata support for OpenAPI, auth, descriptions, etc.
   withMeta: configMeta.optional().default(false),
   contextPath: z.string().default('../../../../src/context'),
-  // README default
-  trpcOptionsPath: z.string().optional().default('../../../../src/trpcOptions'),
+  // Optional path to custom tRPC init options module
+  trpcOptionsPath: z.string().optional(),
   // Postman collection emission
   postman: z
     .union([

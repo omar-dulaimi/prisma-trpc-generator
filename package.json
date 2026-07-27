@@ -18,7 +18,7 @@
     "prerelease": "pnpm run generate && pnpm run lint",
     "test": "vitest run",
     "semantic-release": "semantic-release",
-    "ci:test": "echo 'tests are temporarily disabled'",
+    "ci:test": "vitest run",
     "ci:build": "pnpm run generate",
     "prepare": "husky"
   },

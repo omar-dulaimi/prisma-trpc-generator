@@ -31,7 +31,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
+          # Trusted publishing needs npm >= 11.5.1, which ships with Node 24. Node 22 carries npm 10
+          # and cannot perform the OIDC exchange.
+          node-version: '24.x'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -51,5 +53,5 @@ jobs:
       - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # No NPM_TOKEN: auth is the OIDC exchange. Setting one would write a conflicting .npmrc.
         run: pnpm exec semantic-release

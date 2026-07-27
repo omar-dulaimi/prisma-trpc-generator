@@ -40,7 +40,7 @@ jobs:
       # Type-check happens during build (tsc in npm run generate). No separate typecheck script.
 
       - name: Run linting
-        run: pnpm run lint || echo "Linting failed but continuing for now"
+        run: pnpm run lint
         continue-on-error: true
 
       - name: Run unit tests

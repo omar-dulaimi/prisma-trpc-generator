@@ -7,11 +7,12 @@ set -euo pipefail
 START_TIME=$SECONDS
 
 echo "Building package..."
-rm -rf lib
+# Both cleared before compiling, so a failed build cannot leave the previous package/ sitting
+# there looking publishable.
+rm -rf lib package
 # Not bare `tsc`: node_modules/.bin is not on PATH when this script is invoked directly, which is
 # how CI calls it.
 pnpm exec tsc
-rm -rf package
 mkdir package
 
 echo "Copying files..."

@@ -2,7 +2,9 @@ import { DMMF, EnvValue, GeneratorOptions } from '@prisma/generator-helper';
 import { parseEnvValue } from '@prisma/internals';
 import { SourceFile } from 'ts-morph';
 import { Config } from './config';
-import getRelativePath from './utils/getRelativePath';
+import getRelativePath, {
+  withImportExtension,
+} from './utils/getRelativePath';
 import { uncapitalizeFirstLetter } from './utils/uncapitalizeFirstLetter';
 
 const getProcedureName = (config: Config) => {
@@ -27,7 +29,7 @@ export const generateCreateRouterImport = ({
   }
 
   sourceFile.addImportDeclaration({
-    moduleSpecifier: './helpers/createRouter',
+    moduleSpecifier: withImportExtension('./helpers/createRouter'),
     namedImports: imports,
   });
 };
@@ -74,7 +76,7 @@ export const generateRouterImport = (
   modelNameCamelCase: string,
 ) => {
   sourceFile.addImportDeclaration({
-    moduleSpecifier: `./${modelNameCamelCase}.router`,
+    moduleSpecifier: withImportExtension(`./${modelNameCamelCase}.router`),
     namedImports: [`${modelNamePlural}Router`],
   });
 };
@@ -408,7 +410,9 @@ export const getRouterSchemaImportByOpName = (
   let fileOp = opType;
   if (opType === 'count') fileOp = 'count';
 
-  return `import { ${inputType} } from "${schemasImportBase}/${fileOp}${modelName}.schema"; `;
+  return `import { ${inputType} } from "${withImportExtension(
+    `${schemasImportBase}/${fileOp}${modelName}.schema`,
+  )}"; `;
 };
 
 export const getInputTypeByOpName = (opName: string, modelName: string) => {

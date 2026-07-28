@@ -1,5 +1,29 @@
 import path from 'path';
 
+/**
+ * Extension appended to every emitted relative import, e.g. `.js`.
+ *
+ * Under `moduleResolution: nodenext`, or when running TypeScript directly in Node, an extensionless
+ * relative import does not resolve. Rather than inventing an option, this follows the same knob the
+ * `prisma-client` generator block already exposes, which is also what prisma-zod-generator reads for
+ * the schema files this generator emits alongside these. One setting, one behaviour across both.
+ */
+let importFileExtension = '';
+
+/** Appends the configured extension to a specifier written literally rather than computed. */
+export function withImportExtension(specifier: string): string {
+  return specifier + importFileExtension;
+}
+
+/** Set once per run, before anything is emitted. */
+export function setImportFileExtension(extension: string | undefined): void {
+  if (!extension) {
+    importFileExtension = '';
+    return;
+  }
+  importFileExtension = extension.startsWith('.') ? extension : `.${extension}`;
+}
+
 export default function getRelativePath(
   outputPath: string,
   filePath: string,
@@ -28,5 +52,5 @@ export default function getRelativePath(
     .split(path.sep)
     .join(path.posix.sep);
 
-  return newPath;
+  return newPath + importFileExtension;
 }

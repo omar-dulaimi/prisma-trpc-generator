@@ -21,7 +21,10 @@ import {
   resolveModelsComments,
 } from './helpers';
 import { project } from './project';
-import getRelativePath from './utils/getRelativePath';
+import getRelativePath, {
+  setImportFileExtension,
+  withImportExtension,
+} from './utils/getRelativePath';
 import removeDir from './utils/removeDir';
 
 type ZodGeneratorOptions = Parameters<typeof PrismaZodGenerator>[0];
@@ -175,9 +178,21 @@ export async function generate(options: GeneratorOptions) {
     );
   }
 
+  // Prisma 7.9 removed `previewFeatures` from GetDMMFOptions. The lockfile pins 7.0.0 so CI does
+  // not see it, but the manifest allows ^7.0.0 and a fresh install stops compiling.
+  // Follow the `prisma-client` generator block's own knob rather than adding a competing option.
+  // prisma-zod-generator reads the same setting for the schema files emitted alongside these, so one
+  // setting governs every relative import in the output.
+  setImportFileExtension(
+    (
+      prismaClientProvider.config as
+        | { importFileExtension?: string | string[] }
+        | undefined
+    )?.importFileExtension as string | undefined,
+  );
+
   const prismaClientDmmf = await getDMMF({
     datamodel: options.datamodel,
-    previewFeatures: prismaClientProvider.previewFeatures,
   });
 
   const modelOperations = prismaClientDmmf.mappings.modelOperations;
@@ -224,8 +239,10 @@ export async function generate(options: GeneratorOptions) {
       .split(path.sep)
       .join(path.posix.sep);
     const basePath = rel.startsWith('.') ? rel : `./${rel}`;
-    // New prisma-client generator exports from client.ts, not index.ts
-    return isNewPrismaClient ? `${basePath}/client` : basePath;
+    // Only the relative form takes the extension; a bare package specifier must not.
+    return withImportExtension(
+      isNewPrismaClient ? `${basePath}/client` : basePath,
+    );
   };
   const createRouter = project.createSourceFile(
     path.resolve(outputDir, 'routers', 'helpers', 'createRouter.ts'),
@@ -280,7 +297,7 @@ export async function generate(options: GeneratorOptions) {
             true,
             options.schemaPath,
           )
-        : './auth-strategy';
+        : withImportExtension('./auth-strategy');
     const imports: string[] = [];
     const body: string[] = [];
     if (strategy === 'session') {
@@ -332,7 +349,7 @@ export async function generate(options: GeneratorOptions) {
     const authSource = `// @generated\nexport function ensureAuth(ctx: any) {\n  if (!ctx?.user) {\n    const err: any = new Error('UNAUTHORIZED');\n    err.code = 'UNAUTHORIZED';\n    throw err;\n  }\n}\n\nexport function ensureRole(ctx: any, roles: string[]) {\n  ensureAuth(ctx);\n  const userRole = (ctx.user && (ctx.user['${rolesField}'] as string)) || null;\n  if (!userRole || !roles.includes(userRole)) {\n    const err: any = new Error('FORBIDDEN');\n    err.code = 'FORBIDDEN';\n    throw err;\n  }\n}\n`;
     await fs.writeFile(authHelpersPath, authSource, 'utf8');
     createRouter.addStatements(
-      `\nimport { ensureAuth, ensureRole } from './auth';\n`,
+      `\nimport { ensureAuth, ensureRole } from '${withImportExtension('./auth')}';\n`,
     );
     createRouter.addStatements(
       `\nexport const protectedProcedure = publicProcedure.use(t.middleware(async ({ ctx, next }) => {\n  ensureAuth(ctx);\n  return next();\n}));\n`,
@@ -418,7 +435,7 @@ type PrismaClientModels = {
     const prismaClientImportForServicesIndex = prismaClientImportForServices;
     indexFile.addStatements(/* ts */ `
 import type { Prisma } from '${prismaClientImportForServicesIndex}';
-import { BaseService } from './BaseService';
+import { BaseService } from '${withImportExtension('./BaseService')}';
 `);
     indexFile.addStatements(/* ts */ `
 type OpOpts = { bypassTenant?: boolean; withDeleted?: boolean };
@@ -439,8 +456,9 @@ type TenantContext = Context & { tenantId?: string | number };
     const contextImportPath = contextImportFromServices.startsWith('.')
       ? contextImportFromServices
       : `./${contextImportFromServices}`;
+    const contextImportPathWithExt = withImportExtension(contextImportPath);
     indexFile.addStatements(/* ts */ `
-import type { Context } from '${contextImportPath}';
+import type { Context } from '${contextImportPathWithExt}';
 `);
 
     // Prepare schemas import base for services if Zod is enabled
@@ -916,7 +934,9 @@ export function makeServices(ctx: Context) {
         .split(path.sep)
         .join(path.posix.sep);
       modelRouter.addStatements(/* ts */ `
-import { makeServices } from "${rel.startsWith('.') ? rel : `./${rel}`}";
+import { makeServices } from "${withImportExtension(
+        rel.startsWith('.') ? rel : `./${rel}`,
+      )}";
 `);
     }
 

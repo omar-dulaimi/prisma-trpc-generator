@@ -2,7 +2,7 @@
 
 Enable auth by setting `"auth"` in your JSON config. Basic values:
 
-- `true` – enables protectedProcedure/roleProcedure with session strategy defaults
+- `true`: enables protectedProcedure/roleProcedure with session strategy defaults
 - `{ "strategy": "session" | "jwt" | "custom", "rolesField"?: "role", ... }`
 
 When enabled, the generator emits:
@@ -73,9 +73,9 @@ Set the user field used for role checks with `rolesField` (default `role`). Exam
 
 Then in routers:
 
-- `publicProcedure` – no auth required
-- `protectedProcedure` – requires `ctx.user`
-- `roleProcedure(['admin'])` – requires role match
+- `publicProcedure`: no auth required
+- `protectedProcedure`: requires `ctx.user`
+- `roleProcedure(['admin'])`: requires role match
 
 ## Notes
 

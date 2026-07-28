@@ -75,6 +75,6 @@ main().catch((e) => {
   try {
     await caller.boom();
   } catch (err: any) {
-    console.log('Boom route — error message contains requestId:', err?.message);
+    console.log('Boom route error message contains requestId:', err?.message);
   }
 })();

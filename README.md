@@ -728,21 +728,21 @@ Semantic versioning
 
 ## 📄 License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## 🔗 Related projects
 
-- [prisma-zod-generator](https://github.com/omar-dulaimi/prisma-zod-generator) — Generate Zod schemas from Prisma schema
-- [prisma-trpc-shield-generator](https://github.com/omar-dulaimi/prisma-trpc-shield-generator) — Generate tRPC Shield permissions from Prisma schema
-- [tRPC Shield](https://github.com/omar-dulaimi/trpc-shield) — Permission system for tRPC
-- [Prisma](https://github.com/prisma/prisma) — Database toolkit and ORM
-- [tRPC](https://trpc.io) — End‑to‑end typesafe APIs made easy
+- [prisma-zod-generator](https://github.com/omar-dulaimi/prisma-zod-generator): Generate Zod schemas from Prisma schema
+- [prisma-trpc-shield-generator](https://github.com/omar-dulaimi/prisma-trpc-shield-generator): Generate tRPC Shield permissions from Prisma schema
+- [tRPC Shield](https://github.com/omar-dulaimi/trpc-shield): Permission system for tRPC
+- [Prisma](https://github.com/prisma/prisma): Database toolkit and ORM
+- [tRPC](https://trpc.io): End‑to‑end typesafe APIs made easy
 
 ## 🙏 Acknowledgments
 
-- [Prisma](https://github.com/prisma/prisma) — Modern database toolkit
-- [tRPC](https://trpc.io) — End‑to‑end typesafe APIs
-- [Zod](https://github.com/colinhacks/zod) — TypeScript‑first schema validation
+- [Prisma](https://github.com/prisma/prisma): Modern database toolkit
+- [tRPC](https://trpc.io): End‑to‑end typesafe APIs
+- [Zod](https://github.com/colinhacks/zod): TypeScript‑first schema validation
 - All [contributors](https://github.com/omar-dulaimi/prisma-trpc-generator/graphs/contributors)
 
 ---

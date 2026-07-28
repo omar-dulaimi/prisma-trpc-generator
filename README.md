@@ -160,13 +160,18 @@ Example `prisma/trpc.config.json`:
   "openapi": true,
   "withRequestId": false,
   "withLogging": false,
-  "withServices": false
+  "withServices": false,
+  "showModelNameInProcedure": true
 }
 ```
 
 Notes
 
 - The config path is resolved relative to the Prisma schema file.
+- `showModelNameInProcedure` controls whether the model name is appended to each
+  procedure. It defaults to `true`, giving `createOneUser` and `aggregateUser`.
+  Set it to `false` for `createOne` and `aggregate`, which reads better when the
+  procedures already sit under a per-model router.
 - Aliases `configPath` and `configFile` are also accepted.
 - If a config file is provided, any inline options in the generator block are ignored with a warning.
 - Inline options without a config file still work for now but are deprecated and will be removed in a future major release.

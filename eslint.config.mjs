@@ -38,6 +38,20 @@ export default [
       '@typescript-eslint/no-non-null-assertion': 'warn',
     },
   },
+  // Packaging gates: plain Node ESM, no TypeScript project.
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        Buffer: 'readonly',
+        URL: 'readonly',
+      },
+    },
+  },
   prettier,
   // Loosen some rules in tests
   {

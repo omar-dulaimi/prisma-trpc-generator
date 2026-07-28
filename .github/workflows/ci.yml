@@ -12,7 +12,9 @@ jobs:
 
     strategy:
       matrix:
-        node-version: ['20.19.0', '22.x']
+        # 24.x is here because semantic-release builds and publishes on Node 24. Without it,
+        # nothing tested the runtime that actually produces the tarball.
+        node-version: ['20.19.0', '22.x', '24.x']
 
     steps:
       - name: Checkout code
@@ -89,10 +91,13 @@ jobs:
         env:
           DATABASE_URL: 'file:./dev.db'
 
-      - name: Test package integrity
-        run: |
-          cd package
-          pnpm pack
+      # `pnpm pack` only proved a tarball could be written. Neither of these checks can pass on a
+      # manifest that under-declares its runtime dependencies, which is what shipped in 3.0.1.
+      - name: Check the published manifest declares everything the build loads
+        run: node scripts/check-packed-runtime-deps.mjs
+
+      - name: Install the packed tarball into an empty project and load it
+        run: node scripts/verify-packed-install.mjs
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v4

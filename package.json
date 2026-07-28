@@ -10,6 +10,7 @@
     "prisma-trpc-generator": "lib/generator.js"
   },
   "scripts": {
+    "build": "tsc",
     "generate": "tsc && pnpm exec prisma generate",
     "package:publish": "./package.sh && cd package && pnpm publish --access public",
     "lint": "eslint src/ --fix",
@@ -17,6 +18,7 @@
     "format": "prettier --write .",
     "prerelease": "pnpm run generate && pnpm run lint",
     "test": "vitest run",
+    "test:packaging": "./package.sh && node scripts/check-packed-runtime-deps.mjs && node scripts/verify-packed-install.mjs",
     "semantic-release": "semantic-release",
     "ci:test": "vitest run",
     "ci:build": "pnpm run generate",
@@ -42,8 +44,10 @@
     "@prisma/internals": "^7.0.0",
     "pluralize": "^8.0.0",
     "prisma-trpc-shield-generator": "1.0.1",
+    "prisma-zod-generator": "^2.1.2",
     "ts-morph": "^27.0.2",
-    "tslib": "^2.8.1"
+    "tslib": "^2.8.1",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -69,15 +73,13 @@
     "husky": "^9.1.7",
     "prettier": "^3.6.2",
     "prisma": "^7.0.0",
-    "prisma-zod-generator": "^2.1.2",
     "semantic-release": "^25.0.2",
     "trpc-shield": "^2.0.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vite": "7.2.4",
-    "vitest": "^4.0.13",
-    "zod": "^4.1.12"
+    "vitest": "^4.0.13"
   },
   "bugs": {
     "url": "https://github.com/omar-dulaimi/prisma-trpc-generator/issues"

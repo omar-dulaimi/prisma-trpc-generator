@@ -95,7 +95,11 @@ export const configSchema = z.object({
   withMeta: configMeta.optional().default(false),
   contextPath: z.string().default('../../../../src/context'),
   // README default
-  trpcOptionsPath: z.string().optional().default('../../../../src/trpcOptions'),
+  // No default. The emit sites already branch on this being unset, and a hardcoded relative path
+  // defeated that: it was always truthy, so an import was always written, correct only for a layout
+  // exactly four levels below src. Anywhere else it is a broken static import, which ESM bundlers
+  // treat as a hard failure.
+  trpcOptionsPath: z.string().optional(),
   // Postman collection emission
   postman: z
     .union([

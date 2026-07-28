@@ -1,3 +1,21 @@
+## [3.1.0](https://github.com/omar-dulaimi/prisma-trpc-generator/compare/v3.0.1...v3.1.0) (2026-07-28)
+
+### 🚀 Features
+
+* emit nodenext-compatible import extensions ([13fe0a0](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/13fe0a09b8f0a8b1b2964b78dc0f98b6eec5660c))
+
+### 🐛 Bug Fixes
+
+* clear package/ before compiling, not after ([74dbe7c](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/74dbe7cdd183ac7060560c500d3ff49371ef6734))
+* declare zod and prisma-zod-generator as runtime dependencies ([894c06d](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/894c06de8d92065ec0223b00aa82453955d31b20))
+* stop emitting a trpcOptions import that was never configured ([28b4cc0](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/28b4cc01411368dfd23a9cca35fa5fe7299cc5bc))
+
+### 📚 Documentation
+
+* correct setup instructions that could not work as written ([b1f75fa](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/b1f75fabc6999fbc0a0ca04e6a4729f7b19bde7a))
+* document showModelNameInProcedure ([905980b](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/905980bbb586aba9b14850f379fa82d0e8305564))
+* remove em and en dashes from README, auth docs and example ([bf2e945](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/bf2e945dccf71f5d78e3d8f0ea0d2a3d59ec9c1a))
+
 ## [3.0.1](https://github.com/omar-dulaimi/prisma-trpc-generator/compare/v3.0.0...v3.0.1) (2025-11-22)
 
 ### 🐛 Bug Fixes

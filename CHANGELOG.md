@@ -2,8 +2,8 @@
 
 ### 🐛 Bug Fixes
 
-* regenerate lockfile after dependency reorganization ([b2a154c](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/b2a154c7b364657e736f6d604f1d571e45bde33f))
-* update generator output path in tests to avoid collisions ([21010d6](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/21010d6df63b233e2ea4f9cd3934cbfad5a4f58d))
+- regenerate lockfile after dependency reorganization ([b2a154c](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/b2a154c7b364657e736f6d604f1d571e45bde33f))
+- update generator output path in tests to avoid collisions ([21010d6](https://github.com/omar-dulaimi/prisma-trpc-generator/commit/21010d6df63b233e2ea4f9cd3934cbfad5a4f58d))
 
 ## [3.0.0](https://github.com/omar-dulaimi/prisma-trpc-generator/compare/v2.4.0...v3.0.0) (2025-11-22)
 

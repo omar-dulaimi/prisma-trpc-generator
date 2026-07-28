@@ -2,9 +2,7 @@ import { DMMF, EnvValue, GeneratorOptions } from '@prisma/generator-helper';
 import { parseEnvValue } from '@prisma/internals';
 import { SourceFile } from 'ts-morph';
 import { Config } from './config';
-import getRelativePath, {
-  withImportExtension,
-} from './utils/getRelativePath';
+import getRelativePath, { withImportExtension } from './utils/getRelativePath';
 import { uncapitalizeFirstLetter } from './utils/uncapitalizeFirstLetter';
 
 const getProcedureName = (config: Config) => {

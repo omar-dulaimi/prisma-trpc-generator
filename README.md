@@ -126,13 +126,17 @@ Add the generator to your Prisma schema and point to your JSON config file:
 
 ```prisma
 generator trpc {
-  provider = "node ./lib/generator.js"
-  output   = "./prisma/generated"
-  config   = "./prisma/trpc.config.json"
+  provider = "prisma-trpc-generator"
+  output   = "./generated"
+  config   = "./trpc.config.json"
 }
 ```
 
-Create `prisma/trpc.config.json` (see Feature guide for options), enable `"strict": true` in `tsconfig.json`, then generate:
+Both `output` and `config` are resolved relative to the schema file, the way Prisma resolves
+generator paths. With the schema at `prisma/schema.prisma`, the block above reads
+`prisma/trpc.config.json` and writes to `prisma/generated`.
+
+Create that config file (see Feature guide for options), enable `"strict": true` in `tsconfig.json`, then generate:
 
 ```bash
 npx prisma generate
@@ -639,13 +643,22 @@ cd prisma-trpc-generator
 pnpm install
 ```
 
-3. Build/generate
+3. Create your `.env`
+
+`prisma.config.ts` reads `DATABASE_URL`, and `.env` is not committed, so a fresh clone has to
+create it before anything can run Prisma.
+
+```bash
+cp .env.example .env
+```
+
+4. Build/generate
 
 ```bash
 pnpm run generate
 ```
 
-4. Run tests
+5. Run tests
 
 ```bash
 pnpm test
@@ -653,18 +666,37 @@ pnpm test
 
 ### Testing
 
-- Unit tests: core transformation logic
-- Integration tests: end‑to‑end router generation
-- Multi‑provider tests: all database providers
-- Performance tests: large schema handling
+The suite lives in `tests/` and is organised by feature: routers, Zod schemas, middleware and
+shield, auth, OpenAPI, Postman, tenancy and soft delete, and custom client paths. Every one of
+them generates from a real Prisma schema and asserts against the emitted files, so `pnpm run generate`
+must have run first.
 
 Run specific test suites
 
 ```bash
+# everything, quietly
 pnpm test --silent
-pnpm run test:integration
-pnpm run test:coverage
-pnpm run test:comprehensive
+
+# one file
+pnpm test tests/feature-zod-schemas.test.ts
+
+# with coverage (a Vitest flag; there is no separate coverage script)
+pnpm test --coverage
+```
+
+Coverage of `src/` reads 0 because each suite shells out to `prisma generate`, which runs the
+generator in a child process that the coverage provider does not instrument. The numbers to read
+are the ones for the generated routers.
+
+### Packaging checks
+
+The suites above run the built `lib/` from inside this repo, where `node_modules` already holds
+every devDependency, so they pass even when the published manifest under-declares its runtime
+dependencies. This packs the tarball, installs it into an empty project outside the repo, and
+loads the generator from there:
+
+```bash
+pnpm run test:packaging
 ```
 
 ### Contribution guidelines
